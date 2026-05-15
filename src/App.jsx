@@ -6,6 +6,7 @@ import Metricas from './pages/Metricas'
 import Chat from './pages/Chat'
 import Incidentes from './pages/Incidentes'
 import Capacitaciones from './pages/Capacitaciones'
+import Riesgos from './pages/Riesgos'
 
 
 function PrivateRoute({ children, roles }) {
@@ -57,6 +58,12 @@ export default function App() {
       <Route path="/capacitaciones" element={
         <PrivateRoute roles={['sst']}>
           <Capacitaciones />
+        </PrivateRoute>
+      }/>
+
+      <Route path="/riesgos" element={
+        <PrivateRoute roles={['sst']}>
+          <Riesgos />
         </PrivateRoute>
       }/>
 
