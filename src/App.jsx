@@ -5,6 +5,8 @@ import Dashboard from './pages/Dashboard'
 import Metricas from './pages/Metricas'
 import Chat from './pages/Chat'
 import Incidentes from './pages/Incidentes'
+import Capacitaciones from './pages/Capacitaciones'
+
 
 function PrivateRoute({ children, roles }) {
   const { token, user } = useAuth()
@@ -52,6 +54,11 @@ export default function App() {
        </PrivateRoute>
       }/>
 
+      <Route path="/capacitaciones" element={
+        <PrivateRoute roles={['sst']}>
+          <Capacitaciones />
+        </PrivateRoute>
+      }/>
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
