@@ -4,6 +4,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Metricas from './pages/Metricas'
 import Chat from './pages/Chat'
+import Incidentes from './pages/Incidentes'
 
 function PrivateRoute({ children, roles }) {
   const { token, user } = useAuth()
@@ -44,6 +45,13 @@ export default function App() {
           <Chat />
         </PrivateRoute>
       }/>
+
+      <Route path="/incidentes" element={
+       <PrivateRoute>
+         <Incidentes />
+       </PrivateRoute>
+      }/>
+
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
