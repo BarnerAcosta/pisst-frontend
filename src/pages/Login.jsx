@@ -1,7 +1,7 @@
 // src/pages/Login.jsx
-import { useState, useRef } from 'react'
+// src/pages/Login.jsx
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import ReCAPTCHA from 'react-google-recaptcha'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
 
@@ -10,7 +10,6 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const recaptchaRef = useRef(null)
 
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -18,20 +17,13 @@ export default function Login() {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
-
-    // Obtener el token de reCAPTCHA
-    const recaptchaToken = recaptchaRef.current.getValue()
-    if (!recaptchaToken) {
-      setError('Por favor completa el reCAPTCHA')
-      return
-    }
-
     setLoading(true)
+
     try {
       const response = await api.post('/auth/login', {
         email,
         password,
-        recaptcha_token: recaptchaToken,
+        recaptcha_token: 'test',
       })
 
       const { access_token, role, nombre } = response.data
@@ -44,7 +36,6 @@ export default function Login() {
 
     } catch (err) {
       setError(err.response?.data?.detail || 'Credenciales incorrectas')
-      recaptchaRef.current.reset()
     } finally {
       setLoading(false)
     }
@@ -87,14 +78,6 @@ export default function Login() {
               placeholder="••••••••"
               required
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* reCAPTCHA */}
-          <div className="flex justify-center">
-            <ReCAPTCHA
-              ref={recaptchaRef}
-              sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
             />
           </div>
 
