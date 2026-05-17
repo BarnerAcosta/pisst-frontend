@@ -11,6 +11,7 @@ const menuSST = [
   { path: '/riesgos', label: 'Riesgos' },
   { path: '/auditorias', label: 'Auditorías' },
   { path: '/metricas', label: 'Métricas' },
+  { path: '/usuarios', label: 'Usuarios' },
   { path: '/chat', label: 'SASBOT' },
 ]
 
@@ -35,7 +36,6 @@ export default function Layout({ children }) {
     menuEmpleado
 
   function handleLogout() {
-    sessionStorage.removeItem('pisst_token')
     logout()
     navigate('/login')
   }
