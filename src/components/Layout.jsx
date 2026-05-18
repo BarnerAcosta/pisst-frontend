@@ -22,7 +22,7 @@ const menuGerencia = [
 
 const menuEmpleado = [
   { path: '/chat', label: 'SASBOT' },
-  { path: '/incidentes/nuevo', label: 'Reportar incidente' },
+  { path: '/incidentes', label: 'Reportar incidente' },
 ]
 
 export default function Layout({ children }) {
