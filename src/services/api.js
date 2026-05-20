@@ -16,4 +16,22 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Interceptor: si el backend responde 401 en rutas protegidas, limpiar sesión y redirigir
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const esRutaLogin = error.config?.url?.includes("/auth/login");
+    if (error.response?.status === 401 && !esRutaLogin) {
+      const detalle = error.response?.data?.detail || "";
+      sessionStorage.removeItem("pisst_token");
+      sessionStorage.removeItem("pisst_user");
+      const motivo = detalle.toLowerCase().includes("dispositivo")
+        ? "dispositivo"
+        : "expirada";
+      window.location.href = `/login?sesion=${motivo}`;
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;
