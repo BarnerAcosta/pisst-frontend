@@ -9,6 +9,7 @@ import Capacitaciones from './pages/Capacitaciones'
 import Riesgos from './pages/Riesgos'
 import Auditorias from './pages/Auditorias'
 import Usuarios from './pages/Usuarios'
+import ResetPassword from './pages/ResetPassword'
 
 
 function PrivateRoute({ children, roles }) {
@@ -24,6 +25,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       <Route path="/" element={
         <PrivateRoute>
