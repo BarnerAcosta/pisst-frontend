@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import FloatingSASBOT from './FloatingSASBOT'
 
 const menuSST = [
   { path: '/dashboard',      label: 'Dashboard' },
@@ -161,6 +162,9 @@ export default function Layout({ children }) {
           </div>
         </main>
       </div>
+
+      {/* SASBOT flotante */}
+      <FloatingSASBOT />
 
     </div>
   )
