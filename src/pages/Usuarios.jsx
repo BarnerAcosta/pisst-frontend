@@ -155,7 +155,6 @@ export default function Usuarios() {
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Nombre</th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Correo</th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Rol</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Área</th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Estado</th>
                     <th className="px-4 py-3"/>
                   </tr>
@@ -170,27 +169,16 @@ export default function Usuarios() {
                           {u.role}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-600">
-                        {obtenerAreaUsuario(u) ? (
-                          <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-50 text-blue-700">
-                            {obtenerAreaUsuario(u)}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-gray-400">Sin área</span>
-                        )}
-                      </td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${u.activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                           {u.activo ? 'Activo' : 'Inactivo'}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        {esSST && (
-                          <button onClick={() => abrirEditar(u)}
-                            className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                            Editar
-                          </button>
-                        )}
+                        <button onClick={() => abrirEditar(u)}
+                          className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                          Editar
+                        </button>
                       </td>
                     </tr>
                   ))}
