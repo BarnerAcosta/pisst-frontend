@@ -11,7 +11,7 @@ const coloresAsistencia = {
 
 export default function Capacitaciones() {
   const { user } = useAuth()
-  const esSST = user?.role?.toString?.().toLowerCase?.() === 'sst'
+  const esSST = user?.role === 'sst'
 
   const [capacitaciones, setCapacitaciones] = useState([])
   const [cobertura, setCobertura] = useState(null)

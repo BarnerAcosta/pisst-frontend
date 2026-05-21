@@ -23,7 +23,7 @@ const coloresSeveridad = {
 
 export default function Incidentes() {
   const { user } = useAuth()
-  const esSST = user?.role?.toString?.().toLowerCase?.() === 'sst'
+  const esSST = user?.role === 'sst'
 
   const [incidentes, setIncidentes] = useState([])
   const [cargando, setCargando] = useState(true)
