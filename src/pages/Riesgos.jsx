@@ -20,6 +20,7 @@ const coloresTipo = {
 
 export default function Riesgos() {
   const { user } = useAuth()
+  const esSST = user?.role === 'sst'
   const [peligros, setPeligros] = useState([])
   const [matriz, setMatriz] = useState(null)
   const [cargando, setCargando] = useState(true)
@@ -99,9 +100,8 @@ export default function Riesgos() {
       setError('Selecciona un peligro antes de evaluar')
       return
     }
-    if (!esSST) { setError('No autorizado'); return }
     try {
-      setGuardandoEvaluacion(true)
+      setCargandoDetalle(true)
       await api.post(`/riesgos/peligros/${expandido.id}/evaluar`, {
         probabilidad: Number(formEval.probabilidad),
         severidad: Number(formEval.severidad),
@@ -119,7 +119,7 @@ export default function Riesgos() {
     } catch (err) {
       setError(err.response?.data?.detail || 'Error al evaluar el riesgo')
     } finally {
-      setGuardandoEvaluacion(false)
+      setCargandoDetalle(false)
     }
   }
 
@@ -129,7 +129,6 @@ export default function Riesgos() {
       setError('Selecciona un peligro antes de crear una medida de control')
       return
     }
-    if (!esSST) { setError('No autorizado'); return }
     try {
       const payload = {
         ...formControl,
@@ -316,9 +315,9 @@ export default function Riesgos() {
                                   className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-50">
                                   Cancelar
                                 </button>
-                                <button type="submit" disabled={guardandoEvaluacion}
+                                <button type="submit" disabled={cargandoDetalle}
                                   className="flex-1 bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50">
-                                  {guardandoEvaluacion ? 'Evaluando...' : 'Evaluar'}
+                                  {cargandoDetalle ? 'Evaluando...' : 'Evaluar'}
                                 </button>
                               </div>
                             </form>
