@@ -20,7 +20,7 @@ const coloresTipo = {
 
 export default function Riesgos() {
   const { user } = useAuth()
-  const esSST = user?.role === 'sst'
+  const esSST = user?.role?.toString?.().toLowerCase?.() === 'sst'
   const [peligros, setPeligros] = useState([])
   const [matriz, setMatriz] = useState(null)
   const [cargando, setCargando] = useState(true)

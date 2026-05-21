@@ -24,9 +24,10 @@ export default function Layout({ children }) {
   const navigate = useNavigate()
   const [drawerAbierto, setDrawerAbierto] = useState(false)
 
+  const role = user?.role?.toString?.().toLowerCase?.()
   const menu =
-    user?.role === 'sst'      ? menuSST :
-    user?.role === 'gerencia' ? menuGerencia :
+    role === 'sst'      ? menuSST :
+    role === 'gerencia' ? menuGerencia :
     menuEmpleado
 
   function handleLogout() {

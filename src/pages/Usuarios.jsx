@@ -28,7 +28,7 @@ function obtenerAreaUsuario(usuario) {
 
 export default function Usuarios() {
   const { user } = useAuth()
-  const esSST = user?.role === 'sst'
+  const esSST = user?.role?.toString?.().toLowerCase?.() === 'sst'
   const [usuarios, setUsuarios] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
