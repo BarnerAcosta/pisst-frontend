@@ -9,26 +9,8 @@ const coloresRol = {
   empleado: 'bg-gray-100 text-gray-700',
 }
 
-const areasSugeridas = [
-  'Administración',
-  'Operaciones',
-  'Producción',
-  'Logística',
-  'Mantenimiento',
-  'Calidad',
-  'Recursos Humanos',
-  'Seguridad y Salud en el Trabajo',
-  'Comercial',
-  'Tecnología',
-]
-
-function obtenerAreaUsuario(usuario) {
-  return usuario?.area?.nombre || usuario?.area?.name || usuario?.area_nombre || usuario?.area || ''
-}
-
 export default function Usuarios() {
   const { user } = useAuth()
-  const esSST = user?.role?.toString?.().toLowerCase?.() === 'sst'
   const [usuarios, setUsuarios] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
@@ -38,10 +20,10 @@ export default function Usuarios() {
   const [guardando, setGuardando] = useState(false)
 
   // Crear: nombre, email, role
-  const [formCrear, setFormCrear] = useState({ nombre: '', email: '', role: 'empleado', area: '' })
+  const [formCrear, setFormCrear] = useState({ nombre: '', email: '', role: 'empleado' })
 
-  // Editar: nombre, activo, area
-  const [formEditar, setFormEditar] = useState({ nombre: '', activo: true, area: '' })
+  // Editar: nombre, activo
+  const [formEditar, setFormEditar] = useState({ nombre: '', activo: true })
 
   useEffect(() => { cargarUsuarios() }, [])
 
@@ -62,13 +44,9 @@ export default function Usuarios() {
     setGuardando(true)
     setError('')
     try {
-      const payload = {
-        ...formCrear,
-        area: formCrear.area.trim() || undefined,
-      }
-      await api.post('/usuarios/', payload)
+      await api.post('/usuarios/', formCrear)
       setMostrarFormulario(false)
-      setFormCrear({ nombre: '', email: '', role: 'empleado', area: '' })
+      setFormCrear({ nombre: '', email: '', role: 'empleado' })
       setExito('Usuario creado. Se envió la contraseña temporal al correo registrado.')
       setTimeout(() => setExito(''), 5000)
       cargarUsuarios()
@@ -84,11 +62,7 @@ export default function Usuarios() {
     setGuardando(true)
     setError('')
     try {
-      const payload = {
-        ...formEditar,
-        area: formEditar.area.trim() || undefined,
-      }
-      await api.patch(`/usuarios/${usuarioEditando.id}`, payload)
+      await api.patch(`/usuarios/${usuarioEditando.id}`, formEditar)
       setUsuarioEditando(null)
       cargarUsuarios()
     } catch (err) {
@@ -100,7 +74,7 @@ export default function Usuarios() {
 
   function abrirEditar(u) {
     setUsuarioEditando(u)
-    setFormEditar({ nombre: u.nombre, activo: u.activo, area: obtenerAreaUsuario(u) })
+    setFormEditar({ nombre: u.nombre, activo: u.activo })
     setMostrarFormulario(false)
   }
 
@@ -120,12 +94,10 @@ export default function Usuarios() {
               {usuarios.length} usuario{usuarios.length !== 1 ? 's' : ''} registrado{usuarios.length !== 1 ? 's' : ''}
             </p>
           </div>
-          {esSST && (
-            <button onClick={() => { setMostrarFormulario(true); setUsuarioEditando(null) }}
-              className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-              + Nuevo usuario
-            </button>
-          )}
+          <button onClick={() => { setMostrarFormulario(true); setUsuarioEditando(null) }}
+            className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+            + Nuevo usuario
+          </button>
         </div>
 
         {error && (
@@ -158,22 +130,15 @@ export default function Usuarios() {
                       <p className="font-medium text-gray-900 truncate">{u.nombre}</p>
                       <p className="text-xs text-gray-500 truncate mt-0.5">{u.email}</p>
                     </div>
-                      {esSST && (
-                        <button onClick={() => abrirEditar(u)}
-                          className="text-xs text-blue-600 hover:text-blue-800 font-medium shrink-0">
-                          Editar
-                        </button>
-                      )}
+                    <button onClick={() => abrirEditar(u)}
+                      className="text-xs text-blue-600 hover:text-blue-800 font-medium shrink-0">
+                      Editar
+                    </button>
                   </div>
                   <div className="flex gap-2 mt-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${coloresRol[u.role] ?? 'bg-gray-100 text-gray-600'}`}>
                       {u.role}
                     </span>
-                    {obtenerAreaUsuario(u) && (
-                      <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-50 text-blue-700">
-                        {obtenerAreaUsuario(u)}
-                      </span>
-                    )}
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${u.activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                       {u.activo ? 'Activo' : 'Inactivo'}
                     </span>
@@ -265,20 +230,6 @@ export default function Usuarios() {
                     <option value="gerencia">Gerencia</option>
                   </select>
                 </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Área</label>
-                  <input
-                    type="text"
-                    list="areas-usuario"
-                    value={formCrear.area}
-                    onChange={e => setFormCrear({...formCrear, area: e.target.value})}
-                    placeholder="Ej: Producción"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <datalist id="areas-usuario">
-                    {areasSugeridas.map(area => <option key={area} value={area} />)}
-                  </datalist>
-                </div>
                 <div className="flex gap-3 pt-2">
                   <button type="button" onClick={cerrarModal}
                     className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
@@ -306,20 +257,6 @@ export default function Usuarios() {
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">Área</label>
-                  <input
-                    type="text"
-                    list="areas-usuario"
-                    value={formEditar.area}
-                    onChange={e => setFormEditar({...formEditar, area: e.target.value})}
-                    placeholder="Ej: Mantenimiento"
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <datalist id="areas-usuario">
-                    {areasSugeridas.map(area => <option key={area} value={area} />)}
-                  </datalist>
-                </div>
-                <div>
                   <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                     <input type="checkbox" checked={formEditar.activo} onChange={e => setFormEditar({...formEditar, activo: e.target.checked})}
                       className="rounded"/>
@@ -329,7 +266,6 @@ export default function Usuarios() {
                 <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-500">
                   <p>Correo: <span className="font-medium text-gray-700">{usuarioEditando.email}</span></p>
                   <p>Rol: <span className={`font-medium px-1.5 py-0.5 rounded ${coloresRol[usuarioEditando.role]}`}>{usuarioEditando.role}</span></p>
-                  <p>Área: <span className="font-medium text-gray-700">{obtenerAreaUsuario(usuarioEditando) || 'Sin área'}</span></p>
                   <p className="mt-1 text-gray-400">El rol no se puede cambiar desde aquí.</p>
                 </div>
                 <div className="flex gap-3 pt-2">

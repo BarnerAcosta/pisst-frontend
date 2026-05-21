@@ -20,13 +20,11 @@ const coloresTipo = {
 
 export default function Riesgos() {
   const { user } = useAuth()
-  const esSST = user?.role?.toString?.().toLowerCase?.() === 'sst'
   const [peligros, setPeligros] = useState([])
   const [matriz, setMatriz] = useState(null)
   const [cargando, setCargando] = useState(true)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [error, setError] = useState('')
-  const [guardandoEvaluacion, setGuardandoEvaluacion] = useState(false)
 
   const [form, setForm] = useState({ descripcion: '', tipo: 'mecanico', actividad: '', trabajadores_expuestos: 1 })
 
@@ -63,7 +61,6 @@ export default function Riesgos() {
 
   async function crearPeligro(e) {
     e.preventDefault()
-    if (!esSST) { setError('No autorizado'); return }
     try {
       await api.post('/riesgos/peligros', form)
       setMostrarFormulario(false)
