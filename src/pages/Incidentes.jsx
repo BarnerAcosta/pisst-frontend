@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Layout from '../components/Layout'
 import api from '../services/api'
 import { useAuth } from '../context/AuthContext'
@@ -55,9 +55,7 @@ export default function Incidentes() {
   const [formAccion, setFormAccion] = useState({ descripcion: '', prioridad: 'media', fecha_limite: '', responsable_id: '' })
   const [usuarios, setUsuarios] = useState([])
 
-  useEffect(() => { cargarIncidentes() }, [filtroEstado])
-
-  async function cargarIncidentes() {
+  const cargarIncidentes = useCallback(async () => {
     try {
       setCargando(true)
       const params = filtroEstado ? { estado: filtroEstado } : {}
@@ -68,7 +66,15 @@ export default function Incidentes() {
     } finally {
       setCargando(false)
     }
-  }
+  }, [filtroEstado])
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void cargarIncidentes()
+    }, 0)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [cargarIncidentes])
 
   async function abrirDetalle(inc) {
     setIncidenteSeleccionado(inc)

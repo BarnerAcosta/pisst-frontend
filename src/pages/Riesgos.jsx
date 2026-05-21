@@ -23,6 +23,7 @@ export default function Riesgos() {
   const [cargando, setCargando] = useState(true)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [error, setError] = useState('')
+  const [guardandoEvaluacion, setGuardandoEvaluacion] = useState(false)
 
   const [form, setForm] = useState({ descripcion: '', tipo: 'mecanico', actividad: '', trabajadores_expuestos: 1 })
 
@@ -70,7 +71,13 @@ export default function Riesgos() {
   }
 
   async function expandirPeligro(peligro) {
-    if (expandido?.id === peligro.id) { setExpandido(null); setDetallePeligro(null); return }
+    if (expandido?.id === peligro.id) {
+      setExpandido(null)
+      setDetallePeligro(null)
+      setMostrarFormEval(false)
+      setMostrarFormControl(false)
+      return
+    }
     setExpandido(peligro)
     setMostrarFormEval(false)
     setMostrarFormControl(false)
@@ -87,39 +94,49 @@ export default function Riesgos() {
 
   async function evaluarRiesgo(e) {
     e.preventDefault()
+    if (!expandido?.id) {
+      setError('Selecciona un peligro antes de evaluar')
+      return
+    }
     try {
-      const payload = {
-        probabilidad: parseInt(formEval.probabilidad),
-        severidad: parseInt(formEval.severidad),
+      setGuardandoEvaluacion(true)
+      await api.post(`/riesgos/peligros/${expandido.id}/evaluar`, {
+        probabilidad: Number(formEval.probabilidad),
+        severidad: Number(formEval.severidad),
         es_residual: formEval.es_residual,
-      }
-      const res = await api.post(`/riesgos/peligros/${expandido.id}/evaluar`, payload)
-      setDetallePeligro(prev => ({
-        ...prev,
-        evaluaciones: [...(prev?.evaluaciones || []), res.data]
-      }))
+      })
       setMostrarFormEval(false)
       setFormEval({ probabilidad: 3, severidad: 3, es_residual: false })
-      cargarDatos()
+      const [resDetalle, resMatriz] = await Promise.all([
+        api.get(`/riesgos/peligros/${expandido.id}`),
+        api.get('/riesgos/matriz'),
+      ])
+      setDetallePeligro(resDetalle.data)
+      setMatriz(resMatriz.data)
+      await cargarDatos()
     } catch (err) {
       setError(err.response?.data?.detail || 'Error al evaluar el riesgo')
+    } finally {
+      setGuardandoEvaluacion(false)
     }
   }
 
   async function crearControl(e) {
     e.preventDefault()
+    if (!expandido?.id) {
+      setError('Selecciona un peligro antes de crear una medida de control')
+      return
+    }
     try {
       const payload = {
         ...formControl,
         fecha_limite: formControl.fecha_limite ? new Date(formControl.fecha_limite).toISOString() : undefined,
       }
-      const res = await api.post(`/riesgos/peligros/${expandido.id}/controles`, payload)
-      setDetallePeligro(prev => ({
-        ...prev,
-        medidas_control: [...(prev?.medidas_control || []), res.data]
-      }))
+      await api.post(`/riesgos/peligros/${expandido.id}/controles`, payload)
       setMostrarFormControl(false)
       setFormControl({ descripcion: '', tipo: 'administrativo', fecha_limite: '' })
+      const resDetalle = await api.get(`/riesgos/peligros/${expandido.id}`)
+      setDetallePeligro(resDetalle.data)
     } catch (err) {
       setError(err.response?.data?.detail || 'Error al crear medida de control')
     }
@@ -258,7 +275,7 @@ export default function Riesgos() {
                                     Probabilidad (1-5): <span className="text-blue-700 font-bold">{formEval.probabilidad}</span>
                                   </label>
                                   <input type="range" min={1} max={5} value={formEval.probabilidad}
-                                    onChange={e => setFormEval({...formEval, probabilidad: e.target.value})}
+                                    onChange={e => setFormEval({...formEval, probabilidad: Number(e.target.value)})}
                                     className="w-full accent-blue-700"/>
                                   <div className="flex justify-between text-xs text-gray-400 mt-1">
                                     <span>Rara</span><span>Casi segura</span>
@@ -269,7 +286,7 @@ export default function Riesgos() {
                                     Severidad (1-5): <span className="text-blue-700 font-bold">{formEval.severidad}</span>
                                   </label>
                                   <input type="range" min={1} max={5} value={formEval.severidad}
-                                    onChange={e => setFormEval({...formEval, severidad: e.target.value})}
+                                    onChange={e => setFormEval({...formEval, severidad: Number(e.target.value)})}
                                     className="w-full accent-blue-700"/>
                                   <div className="flex justify-between text-xs text-gray-400 mt-1">
                                     <span>Leve</span><span>Catastrófica</span>
@@ -292,9 +309,9 @@ export default function Riesgos() {
                                   className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-50">
                                   Cancelar
                                 </button>
-                                <button type="submit"
-                                  className="flex-1 bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg text-sm font-medium">
-                                  Evaluar
+                                <button type="submit" disabled={guardandoEvaluacion}
+                                  className="flex-1 bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg text-sm font-medium disabled:opacity-50">
+                                  {guardandoEvaluacion ? 'Evaluando...' : 'Evaluar'}
                                 </button>
                               </div>
                             </form>

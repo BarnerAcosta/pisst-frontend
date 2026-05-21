@@ -43,7 +43,6 @@ export default function Auditorias() {
   const [formHallazgo, setFormHallazgo] = useState({ descripcion: '', clasificacion: 'conformidad', evidencia: '', recomendacion: '' })
 
   // No conformidades
-  const [ncExpandida, setNcExpandida] = useState(null)
   const [mostrarFormNC, setMostrarFormNC] = useState(null)
   const [formNC, setFormNC] = useState({ descripcion: '', fecha_limite: '', responsable_id: '' })
   const [noConformidades, setNoConformidades] = useState({})

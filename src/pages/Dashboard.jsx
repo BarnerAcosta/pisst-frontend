@@ -10,10 +10,6 @@ export default function Dashboard() {
   const [cargando, setCargando] = useState(true)
   const navigate = useNavigate()
 
-  useEffect(() => {
-    cargarDatos()
-  }, [])
-
   async function cargarDatos() {
     try {
       setCargando(true)
@@ -29,6 +25,14 @@ export default function Dashboard() {
       setCargando(false)
     }
   }
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void cargarDatos()
+    }, 0)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [])
 
   const accesosRapidos = [
     { label: 'Nuevo incidente', path: '/incidentes', color: 'bg-red-50 border-red-200 text-red-700 hover:bg-red-100' },

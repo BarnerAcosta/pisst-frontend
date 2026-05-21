@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import Layout from '../components/Layout'
 import api from '../services/api'
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
+  XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, BarChart, Bar
 } from 'recharts'
 
@@ -11,11 +11,6 @@ export default function Metricas() {
   const [dashboard, setDashboard] = useState(null)
   const [alertas, setAlertas] = useState([])
   const [cargando, setCargando] = useState(true)
-  const { user } = { user: JSON.parse(sessionStorage.getItem('pisst_user') || '{}') }
-
-  useEffect(() => {
-    cargarDatos()
-  }, [])
 
   async function cargarDatos() {
     try {
@@ -32,6 +27,14 @@ export default function Metricas() {
       setCargando(false)
     }
   }
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void cargarDatos()
+    }, 0)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [])
 
   if (cargando) {
     return (

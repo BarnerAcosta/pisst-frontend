@@ -4,20 +4,15 @@ import api from '../services/api'
 export default function FloatingSASBOT() {
   const [abierto, setAbierto]   = useState(false)
   const [mensaje, setMensaje]   = useState('')
-  const [mensajes, setMensajes] = useState([])
+  const [mensajes, setMensajes] = useState([{
+    tipo: 'bot',
+    texto: '¡Hola! Soy SASBOT, tu asistente de Seguridad y Salud en el Trabajo. ¿En qué puedo ayudarte hoy?',
+    emergencia: false,
+  }])
   const [cargando, setCargando] = useState(false)
   const [hovered, setHovered]   = useState(false)
-  const bottomRef    = useRef(null)
   const inputRef     = useRef(null)
   const mensajesRef  = useRef(null)
-
-  useEffect(() => {
-    setMensajes([{
-      tipo: 'bot',
-      texto: '¡Hola! Soy SASBOT, tu asistente de Seguridad y Salud en el Trabajo. ¿En qué puedo ayudarte hoy?',
-      emergencia: false,
-    }])
-  }, [])
 
   useEffect(() => {
     if (mensajesRef.current) {

@@ -5,18 +5,13 @@ import api from '../services/api'
 
 export default function Chat() {
   const [mensaje, setMensaje] = useState('')
-  const [mensajes, setMensajes] = useState([])
+  const [mensajes, setMensajes] = useState([{
+    tipo: 'bot',
+    texto: '¡Hola! Soy SASBOT, tu asistente de Seguridad y Salud en el Trabajo. ¿En qué puedo ayudarte hoy?',
+    emergencia: false,
+  }])
   const [cargando, setCargando] = useState(false)
   const bottomRef = useRef(null)
-
-  // Mensaje de bienvenida al cargar
-  useEffect(() => {
-    setMensajes([{
-      tipo: 'bot',
-      texto: '¡Hola! Soy SASBOT, tu asistente de Seguridad y Salud en el Trabajo. ¿En qué puedo ayudarte hoy?',
-      emergencia: false,
-    }])
-  }, [])
 
   // Scroll automático al último mensaje
   useEffect(() => {
@@ -43,7 +38,7 @@ export default function Chat() {
         texto: respuesta,
         emergencia: modo_emergencia,
       }])
-    } catch (err) {
+    } catch {
       setMensajes(prev => [...prev, {
         tipo: 'bot',
         texto: 'Lo siento, ocurrió un error. Por favor intenta de nuevo.',
