@@ -11,14 +11,11 @@ const menuSST = [
   { path: '/auditorias',     label: 'Auditorías' },
   { path: '/metricas',       label: 'Métricas' },
   { path: '/usuarios',       label: 'Usuarios' },
-  { path: '/chat',           label: 'SASBOT' },
 ]
 const menuGerencia = [
   { path: '/metricas', label: 'Dashboard' },
-  { path: '/chat',     label: 'SASBOT' },
 ]
 const menuEmpleado = [
-  { path: '/chat',       label: 'SASBOT' },
   { path: '/incidentes', label: 'Reportar incidente' },
 ]
 
