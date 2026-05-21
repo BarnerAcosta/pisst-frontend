@@ -155,7 +155,6 @@ export default function Usuarios() {
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Nombre</th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Correo</th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Rol</th>
-                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Área</th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Estado</th>
                     <th className="px-4 py-3"/>
                   </tr>
@@ -177,9 +176,9 @@ export default function Usuarios() {
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button onClick={() => abrirEditar(u)}
-                            className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                            Editar
-                          </button>
+                          className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                          Editar
+                        </button>
                       </td>
                     </tr>
                   ))}
