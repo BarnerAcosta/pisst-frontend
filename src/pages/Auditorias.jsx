@@ -302,7 +302,7 @@ export default function Auditorias() {
                         </button>
                       ) : (
                         <form onSubmit={crearHallazgo} className="space-y-3 bg-white border border-gray-200 rounded-lg p-4">
-                          <div className="grid grid-cols-2 gap-3">
+                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                             <div>
                               <label className="block text-xs font-medium text-gray-700 mb-1">Clasificación</label>
                               <select value={formHallazgo.clasificacion} onChange={e => setFormHallazgo({...formHallazgo, clasificacion: e.target.value})}

@@ -229,7 +229,7 @@ export default function Capacitaciones() {
 
                     {mostrarFormSesion && (
                       <form onSubmit={crearSesion} className="bg-white border border-gray-200 rounded-lg p-4 space-y-3 mb-3">
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                           <div>
                             <label className="block text-xs font-medium text-gray-700 mb-1">Fecha</label>
                             <input type="datetime-local" value={formSesion.fecha} onChange={e => setFormSesion({...formSesion, fecha: e.target.value})} required

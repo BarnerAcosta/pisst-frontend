@@ -59,13 +59,13 @@ export default function Dashboard() {
 
         {/* Encabezado */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-blue-900">Dashboard SST</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-blue-900">Dashboard SST</h1>
           <p className="text-gray-500 text-sm mt-1">Panel de control del Encargado SST</p>
         </div>
 
         {/* KPI Cards */}
         {dashboard && (
-          <div className="grid grid-cols-2 gap-4 mb-6 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 mb-6 sm:gap-4 lg:grid-cols-4">
             <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
               <p className="text-xs text-gray-500 mb-1">Cumplimiento SG-SST</p>
               <p className="text-3xl font-bold text-blue-700">{dashboard.cumplimiento_sgsst}%</p>
@@ -109,7 +109,7 @@ export default function Dashboard() {
         {/* Accesos rápidos */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
           <h2 className="text-sm font-medium text-gray-700 mb-3">Accesos rápidos</h2>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
             {accesosRapidos.map(item => (
               <button
                 key={item.path}

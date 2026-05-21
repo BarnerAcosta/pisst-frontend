@@ -270,7 +270,7 @@ export default function Incidentes() {
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
               <h2 className="text-lg font-bold text-blue-900 mb-4">Nuevo incidente</h2>
               <form onSubmit={crearIncidente} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
                     <select value={form.tipo} onChange={e => setForm({...form, tipo: e.target.value})}

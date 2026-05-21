@@ -64,12 +64,12 @@ export default function Metricas() {
 
         {/* Encabezado */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-blue-900">Dashboard Ejecutivo</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-blue-900">Dashboard Ejecutivo</h1>
           <p className="text-gray-500 text-sm mt-1">Resumen del Sistema de Gestión SST</p>
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-2 gap-4 mb-6 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 mb-6 sm:gap-4 lg:grid-cols-4">
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
             <p className="text-xs text-gray-500 mb-1">Cumplimiento SG-SST</p>
             <p className="text-3xl font-bold text-blue-700">{dashboard.cumplimiento_sgsst}%</p>
@@ -89,7 +89,7 @@ export default function Metricas() {
         </div>
 
         {/* KPIs técnicos */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 gap-3 mb-6 sm:grid-cols-3 sm:gap-4">
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
             <p className="text-xs text-gray-500 mb-1">Tasa de accidentalidad</p>
             <p className="text-2xl font-bold text-blue-900">{kpis.tasa_accidentalidad ?? 0}%</p>

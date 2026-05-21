@@ -168,7 +168,7 @@ export default function Riesgos() {
 
         {/* Resumen matriz */}
         {matriz && (
-          <div className="grid grid-cols-4 gap-3 mb-6">
+          <div className="grid grid-cols-2 gap-3 mb-6 sm:grid-cols-4">
             {['critico', 'alto', 'medio', 'bajo'].map(nivel => (
               <div key={nivel} className={`border rounded-xl p-4 ${coloresNivel[nivel]}`}>
                 <p className="text-xs font-medium capitalize mb-1">{nivelLabel(nivel)}</p>
@@ -252,7 +252,7 @@ export default function Riesgos() {
 
                           {mostrarFormEval && (
                             <form onSubmit={evaluarRiesgo} className="mt-3 bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-                              <div className="grid grid-cols-2 gap-4">
+                              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 <div>
                                   <label className="block text-xs font-medium text-gray-700 mb-1">
                                     Probabilidad (1-5): <span className="text-blue-700 font-bold">{formEval.probabilidad}</span>
@@ -348,7 +348,7 @@ export default function Riesgos() {
                                   required placeholder="Describe la medida de control..."
                                   className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                               </div>
-                              <div className="grid grid-cols-2 gap-3">
+                              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                                 <div>
                                   <label className="block text-xs font-medium text-gray-700 mb-1">Tipo (jerarquía)</label>
                                   <select value={formControl.tipo} onChange={e => setFormControl({...formControl, tipo: e.target.value})}
@@ -400,7 +400,7 @@ export default function Riesgos() {
                     placeholder="Describe el peligro identificado..." required rows={3}
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"/>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                   <div>
                     <label className="block text-xs font-medium text-gray-700 mb-1">Tipo</label>
                     <select value={form.tipo} onChange={e => setForm({...form, tipo: e.target.value})}

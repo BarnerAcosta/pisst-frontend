@@ -56,11 +56,11 @@ export default function Chat() {
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-8rem)]">
+      <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-8rem)] h-[calc(100dvh-10rem)]">
 
         {/* Encabezado */}
-        <div className="mb-4">
-          <h1 className="text-2xl font-bold text-blue-900">SASBOT</h1>
+        <div className="mb-3 sm:mb-4">
+          <h1 className="text-xl sm:text-2xl font-bold text-blue-900">SASBOT</h1>
           <p className="text-gray-500 text-sm">
             Asistente de Seguridad y Salud en el Trabajo · Basado en Gemini AI
           </p>

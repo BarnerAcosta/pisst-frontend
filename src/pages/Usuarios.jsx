@@ -118,43 +118,72 @@ export default function Usuarios() {
             No hay usuarios registrados
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Nombre</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Correo</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Rol</th>
-                  <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Estado</th>
-                  <th className="px-4 py-3"/>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {usuarios.map(u => (
-                  <tr key={u.id} className="hover:bg-gray-50 transition">
-                    <td className="px-4 py-3 font-medium text-gray-900">{u.nombre}</td>
-                    <td className="px-4 py-3 text-gray-500">{u.email}</td>
-                    <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${coloresRol[u.role] ?? 'bg-gray-100 text-gray-600'}`}>
-                        {u.role}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${u.activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                        {u.activo ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button onClick={() => abrirEditar(u)}
-                        className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                        Editar
-                      </button>
-                    </td>
+          <>
+            {/* Tarjetas — móvil */}
+            <div className="sm:hidden space-y-3">
+              {usuarios.map(u => (
+                <div key={u.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-medium text-gray-900 truncate">{u.nombre}</p>
+                      <p className="text-xs text-gray-500 truncate mt-0.5">{u.email}</p>
+                    </div>
+                    <button onClick={() => abrirEditar(u)}
+                      className="text-xs text-blue-600 hover:text-blue-800 font-medium shrink-0">
+                      Editar
+                    </button>
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${coloresRol[u.role] ?? 'bg-gray-100 text-gray-600'}`}>
+                      {u.role}
+                    </span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${u.activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                      {u.activo ? 'Activo' : 'Inactivo'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Tabla — escritorio */}
+            <div className="hidden sm:block bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Nombre</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Correo</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Rol</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Estado</th>
+                    <th className="px-4 py-3"/>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {usuarios.map(u => (
+                    <tr key={u.id} className="hover:bg-gray-50 transition">
+                      <td className="px-4 py-3 font-medium text-gray-900">{u.nombre}</td>
+                      <td className="px-4 py-3 text-gray-500">{u.email}</td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${coloresRol[u.role] ?? 'bg-gray-100 text-gray-600'}`}>
+                          {u.role}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${u.activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                          {u.activo ? 'Activo' : 'Inactivo'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button onClick={() => abrirEditar(u)}
+                          className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                          Editar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
 
         {/* Modal: crear usuario */}
