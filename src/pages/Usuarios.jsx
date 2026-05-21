@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
 import api from '../services/api'
 
@@ -26,6 +27,8 @@ function obtenerAreaUsuario(usuario) {
 }
 
 export default function Usuarios() {
+  const { user } = useAuth()
+  const esSST = user?.role === 'sst'
   const [usuarios, setUsuarios] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
@@ -117,10 +120,12 @@ export default function Usuarios() {
               {usuarios.length} usuario{usuarios.length !== 1 ? 's' : ''} registrado{usuarios.length !== 1 ? 's' : ''}
             </p>
           </div>
-          <button onClick={() => { setMostrarFormulario(true); setUsuarioEditando(null) }}
-            className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-            + Nuevo usuario
-          </button>
+          {esSST && (
+            <button onClick={() => { setMostrarFormulario(true); setUsuarioEditando(null) }}
+              className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+              + Nuevo usuario
+            </button>
+          )}
         </div>
 
         {error && (
@@ -153,10 +158,12 @@ export default function Usuarios() {
                       <p className="font-medium text-gray-900 truncate">{u.nombre}</p>
                       <p className="text-xs text-gray-500 truncate mt-0.5">{u.email}</p>
                     </div>
-                    <button onClick={() => abrirEditar(u)}
-                      className="text-xs text-blue-600 hover:text-blue-800 font-medium shrink-0">
-                      Editar
-                    </button>
+                      {esSST && (
+                        <button onClick={() => abrirEditar(u)}
+                          className="text-xs text-blue-600 hover:text-blue-800 font-medium shrink-0">
+                          Editar
+                        </button>
+                      )}
                   </div>
                   <div className="flex gap-2 mt-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${coloresRol[u.role] ?? 'bg-gray-100 text-gray-600'}`}>
@@ -213,10 +220,12 @@ export default function Usuarios() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button onClick={() => abrirEditar(u)}
-                          className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                          Editar
-                        </button>
+                        {esSST && (
+                          <button onClick={() => abrirEditar(u)}
+                            className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                            Editar
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}

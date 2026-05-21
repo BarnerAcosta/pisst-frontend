@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
 import api from '../services/api'
 
@@ -18,6 +19,8 @@ const coloresTipo = {
 }
 
 export default function Riesgos() {
+  const { user } = useAuth()
+  const esSST = user?.role === 'sst'
   const [peligros, setPeligros] = useState([])
   const [matriz, setMatriz] = useState(null)
   const [cargando, setCargando] = useState(true)
@@ -60,6 +63,7 @@ export default function Riesgos() {
 
   async function crearPeligro(e) {
     e.preventDefault()
+    if (!esSST) { setError('No autorizado'); return }
     try {
       await api.post('/riesgos/peligros', form)
       setMostrarFormulario(false)
@@ -98,6 +102,7 @@ export default function Riesgos() {
       setError('Selecciona un peligro antes de evaluar')
       return
     }
+    if (!esSST) { setError('No autorizado'); return }
     try {
       setGuardandoEvaluacion(true)
       await api.post(`/riesgos/peligros/${expandido.id}/evaluar`, {
@@ -127,6 +132,7 @@ export default function Riesgos() {
       setError('Selecciona un peligro antes de crear una medida de control')
       return
     }
+    if (!esSST) { setError('No autorizado'); return }
     try {
       const payload = {
         ...formControl,
@@ -170,10 +176,12 @@ export default function Riesgos() {
               {peligros.length} peligro{peligros.length !== 1 ? 's' : ''} identificado{peligros.length !== 1 ? 's' : ''}
             </p>
           </div>
-          <button onClick={() => setMostrarFormulario(true)}
-            className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
-            + Nuevo peligro
-          </button>
+          {esSST && (
+            <button onClick={() => setMostrarFormulario(true)}
+              className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+              + Nuevo peligro
+            </button>
+          )}
         </div>
 
         {error && (
@@ -240,10 +248,12 @@ export default function Riesgos() {
                         <div>
                           <div className="flex items-center justify-between mb-3">
                             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Evaluaciones de riesgo</h3>
-                            <button onClick={() => { setMostrarFormEval(!mostrarFormEval); setMostrarFormControl(false) }}
-                              className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                              + Evaluar
-                            </button>
+                            {esSST && (
+                              <button onClick={() => { setMostrarFormEval(!mostrarFormEval); setMostrarFormControl(false) }}
+                                className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                                + Evaluar
+                              </button>
+                            )}
                           </div>
 
                           {detallePeligro?.evaluaciones?.length > 0 ? (
@@ -322,10 +332,12 @@ export default function Riesgos() {
                         <div>
                           <div className="flex items-center justify-between mb-3">
                             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Medidas de control</h3>
-                            <button onClick={() => { setMostrarFormControl(!mostrarFormControl); setMostrarFormEval(false) }}
-                              className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-                              + Control
-                            </button>
+                            {esSST && (
+                              <button onClick={() => { setMostrarFormControl(!mostrarFormControl); setMostrarFormEval(false) }}
+                                className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+                                + Control
+                              </button>
+                            )}
                           </div>
 
                           {detallePeligro?.medidas_control?.length > 0 ? (
