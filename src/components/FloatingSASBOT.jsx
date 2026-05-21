@@ -7,8 +7,9 @@ export default function FloatingSASBOT() {
   const [mensajes, setMensajes] = useState([])
   const [cargando, setCargando] = useState(false)
   const [hovered, setHovered]   = useState(false)
-  const bottomRef = useRef(null)
-  const inputRef  = useRef(null)
+  const bottomRef    = useRef(null)
+  const inputRef     = useRef(null)
+  const mensajesRef  = useRef(null)
 
   useEffect(() => {
     setMensajes([{
@@ -19,8 +20,10 @@ export default function FloatingSASBOT() {
   }, [])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [mensajes])
+    if (mensajesRef.current) {
+      mensajesRef.current.scrollTop = mensajesRef.current.scrollHeight
+    }
+  }, [mensajes, cargando])
 
   useEffect(() => {
     if (abierto) setTimeout(() => inputRef.current?.focus(), 100)
@@ -84,7 +87,7 @@ export default function FloatingSASBOT() {
           </div>
 
           {/* Mensajes */}
-          <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3 bg-gray-50">
+          <div ref={mensajesRef} className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3 bg-gray-50">
             {mensajes.map((msg, i) => (
               <div key={i} className={`flex ${msg.tipo === 'usuario' ? 'justify-end' : 'justify-start'}`}>
                 {msg.tipo === 'bot' && (
@@ -123,7 +126,6 @@ export default function FloatingSASBOT() {
                 </div>
               </div>
             )}
-            <div ref={bottomRef} />
           </div>
 
           {/* Input */}
