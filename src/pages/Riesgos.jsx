@@ -126,8 +126,8 @@ export default function Riesgos() {
   }
 
   async function actualizarControl(medidaId, estado) {
-    const evidencia = estado === 'implementada' ? window.prompt('Evidencia de implementación:') : undefined
-    if (estado === 'implementada' && !evidencia) return
+    const evidencia = estado === 'completada' ? window.prompt('Evidencia de implementación:') : undefined
+    if (estado === 'completada' && !evidencia) return
     try {
       const res = await api.patch(`/riesgos/controles/${medidaId}`, { estado, evidencia })
       setDetallePeligro(prev => ({
@@ -323,11 +323,11 @@ export default function Riesgos() {
                                     {m.evidencia && <p className="text-xs text-gray-500 mt-0.5">Evidencia: {m.evidencia}</p>}
                                   </div>
                                   <div className="flex items-center gap-2 flex-shrink-0">
-                                    <span className={`text-xs px-2 py-0.5 rounded-full ${m.estado === 'implementada' ? 'bg-green-100 text-green-700' : m.estado === 'en_proceso' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'}`}>
+                                    <span className={`text-xs px-2 py-0.5 rounded-full ${m.estado === 'completada' ? 'bg-green-100 text-green-700' : m.estado === 'en_ejecucion' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'}`}>
                                       {m.estado}
                                     </span>
-                                    {m.estado !== 'implementada' && (
-                                      <button onClick={() => actualizarControl(m.id, 'implementada')}
+                                    {m.estado !== 'completada' && (
+                                      <button onClick={() => actualizarControl(m.id, 'completada')}
                                         className="text-xs text-green-600 hover:text-green-800 font-medium">
                                         ✓
                                       </button>
