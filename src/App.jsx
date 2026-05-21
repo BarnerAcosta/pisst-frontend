@@ -15,12 +15,15 @@ import ResetPassword from './pages/ResetPassword'
 function PrivateRoute({ children, roles }) {
   const { token, user } = useAuth()
   if (!token) return <Navigate to="/login" replace />
-  if (roles && !roles.includes(user?.role)) return <Navigate to="/login" replace />
+  const userRole = user?.role?.toString?.().toLowerCase?.()
+  if (roles && !roles.map(r => r.toString().toLowerCase()).includes(userRole)) return <Navigate to="/login" replace />
   return children
 }
 
 export default function App() {
   const { user } = useAuth()
+
+  const userRole = user?.role?.toString?.().toLowerCase?.()
 
   return (
     <Routes>
@@ -29,9 +32,9 @@ export default function App() {
 
       <Route path="/" element={
         <PrivateRoute>
-          {user?.role === 'sst' && <Navigate to="/dashboard" replace />}
-          {user?.role === 'gerencia' && <Navigate to="/metricas" replace />}
-          {user?.role === 'empleado' && <Navigate to="/chat" replace />}
+          {userRole === 'sst' && <Navigate to="/dashboard" replace />}
+          {userRole === 'gerencia' && <Navigate to="/metricas" replace />}
+          {userRole === 'empleado' && <Navigate to="/chat" replace />}
         </PrivateRoute>
       }/>
 
