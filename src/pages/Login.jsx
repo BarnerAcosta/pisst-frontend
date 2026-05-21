@@ -58,9 +58,10 @@ export default function Login() {
         recaptcha_token: 'test',
       })
       const { access_token, role, nombre } = response.data
-      login(access_token, { role, nombre, email })
-      if (role === 'sst') navigate('/dashboard')
-      else if (role === 'gerencia') navigate('/metricas')
+      const normalizedRole = role?.toString?.().toLowerCase?.()
+      login(access_token, { role: normalizedRole, nombre, email })
+      if (normalizedRole === 'sst') navigate('/dashboard')
+      else if (normalizedRole === 'gerencia') navigate('/metricas')
       else navigate('/chat')
     } catch (err) {
       const status  = err.response?.status
