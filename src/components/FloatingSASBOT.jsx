@@ -84,7 +84,7 @@ export default function FloatingSASBOT() {
           </div>
 
           {/* Mensajes */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50">
+          <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3 bg-gray-50">
             {mensajes.map((msg, i) => (
               <div key={i} className={`flex ${msg.tipo === 'usuario' ? 'justify-end' : 'justify-start'}`}>
                 {msg.tipo === 'bot' && (
