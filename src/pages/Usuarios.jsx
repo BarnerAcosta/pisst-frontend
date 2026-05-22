@@ -163,9 +163,12 @@ export default function Usuarios() {
                       Editar
                     </button>
                   </div>
-                  <div className="flex gap-2 mt-3">
+                  <div className="flex flex-wrap gap-2 mt-3">
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${coloresRol[u.role] ?? 'bg-gray-100 text-gray-600'}`}>
                       {u.role}
+                    </span>
+                    <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-gray-100 text-gray-600">
+                      {areas.find(a => a.id === u.area_id)?.nombre ?? '—'}
                     </span>
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${u.activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
                       {u.activo ? 'Activo' : 'Inactivo'}
@@ -183,6 +186,7 @@ export default function Usuarios() {
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Nombre</th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Correo</th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Rol</th>
+                    <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Área</th>
                     <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Estado</th>
                     <th className="px-4 py-3"/>
                   </tr>
@@ -196,6 +200,9 @@ export default function Usuarios() {
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium capitalize ${coloresRol[u.role] ?? 'bg-gray-100 text-gray-600'}`}>
                           {u.role}
                         </span>
+                      </td>
+                      <td className="px-4 py-3 text-gray-500 text-sm">
+                        {areas.find(a => a.id === u.area_id)?.nombre ?? '—'}
                       </td>
                       <td className="px-4 py-3">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${u.activo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
