@@ -17,12 +17,20 @@ export default function Usuarios() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
   const [exito, setExito] = useState('')
+  const [errorAreas, setErrorAreas] = useState('')
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [usuarioEditando, setUsuarioEditando] = useState(null)
   const [guardando, setGuardando] = useState(false)
 
   const [formCrear, setFormCrear] = useState(formCrearVacio)
   const [formEditar, setFormEditar] = useState({ nombre: '', activo: true, area_id: '', cargo_id: '' })
+
+  // Gestión de áreas y cargos
+  const [mostrarGestion, setMostrarGestion] = useState(false)
+  const [nuevaArea, setNuevaArea] = useState('')
+  const [guardandoArea, setGuardandoArea] = useState(false)
+  const [nuevoCargo, setNuevoCargo] = useState({ nombre: '', area_id: '' })
+  const [guardandoCargo, setGuardandoCargo] = useState(false)
 
   useEffect(() => {
     cargarUsuarios()
@@ -42,15 +50,20 @@ export default function Usuarios() {
   }
 
   async function cargarAreasCargos() {
-    try {
-      const [resAreas, resCargos] = await Promise.all([
-        api.get('/areas/'),
-        api.get('/cargos/'),
-      ])
-      setAreas(resAreas.data)
-      setCargos(resCargos.data)
-    } catch {
-      // Áreas y cargos son opcionales — no bloquear si fallan
+    setErrorAreas('')
+    const [resAreas, resCargos] = await Promise.allSettled([
+      api.get('/areas/'),
+      api.get('/cargos/'),
+    ])
+
+    if (resAreas.status === 'fulfilled') {
+      setAreas(resAreas.value.data)
+    } else {
+      setErrorAreas('No se pudieron cargar las áreas y cargos. Verifica tu conexión.')
+    }
+
+    if (resCargos.status === 'fulfilled') {
+      setCargos(resCargos.value.data)
     }
   }
 
@@ -100,6 +113,34 @@ export default function Usuarios() {
     }
   }
 
+  async function crearArea(e) {
+    e.preventDefault()
+    setGuardandoArea(true)
+    try {
+      await api.post('/areas/', { nombre: nuevaArea.trim() })
+      setNuevaArea('')
+      await cargarAreasCargos()
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Error al crear el área')
+    } finally {
+      setGuardandoArea(false)
+    }
+  }
+
+  async function crearCargo(e) {
+    e.preventDefault()
+    setGuardandoCargo(true)
+    try {
+      await api.post('/cargos/', { nombre: nuevoCargo.nombre.trim(), area_id: nuevoCargo.area_id })
+      setNuevoCargo({ nombre: '', area_id: '' })
+      await cargarAreasCargos()
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Error al crear el cargo')
+    } finally {
+      setGuardandoCargo(false)
+    }
+  }
+
   function abrirEditar(u) {
     setUsuarioEditando(u)
     setFormEditar({ nombre: u.nombre, activo: u.activo, area_id: u.area_id ?? '', cargo_id: u.cargo_id ?? '' })
@@ -138,6 +179,13 @@ export default function Usuarios() {
         {exito && (
           <div className="bg-green-50 border border-green-200 text-green-700 text-sm rounded-lg px-4 py-3 mb-4">
             {exito}
+          </div>
+        )}
+
+        {errorAreas && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm rounded-lg px-4 py-3 mb-4 flex items-center justify-between">
+            <span>{errorAreas}</span>
+            <button onClick={cargarAreasCargos} className="ml-3 text-xs font-medium underline">Reintentar</button>
           </div>
         )}
 
@@ -222,6 +270,106 @@ export default function Usuarios() {
             </div>
           </>
         )}
+
+        {/* Panel de gestión de áreas y cargos */}
+        <div className="mt-6">
+          <button
+            onClick={() => setMostrarGestion(v => !v)}
+            className="flex items-center gap-1.5 text-sm text-blue-700 hover:text-blue-900 font-medium transition"
+          >
+            <svg className={`w-4 h-4 transition-transform ${mostrarGestion ? 'rotate-90' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+            Gestionar áreas y cargos
+          </button>
+
+          {mostrarGestion && (
+            <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+              {/* Áreas */}
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                <h3 className="text-sm font-semibold text-gray-800 mb-3">
+                  Áreas <span className="text-gray-400 font-normal">({areas.length})</span>
+                </h3>
+                <div className="space-y-1 mb-3 max-h-28 overflow-y-auto">
+                  {areas.length === 0
+                    ? <p className="text-xs text-gray-400 italic">Sin áreas creadas</p>
+                    : areas.map(a => (
+                        <p key={a.id} className="text-xs text-gray-600">• {a.nombre}</p>
+                      ))
+                  }
+                </div>
+                <form onSubmit={crearArea} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={nuevaArea}
+                    onChange={e => setNuevaArea(e.target.value)}
+                    placeholder="Nueva área..."
+                    required
+                    className="flex-1 border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={guardandoArea}
+                    className="bg-blue-700 hover:bg-blue-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition disabled:opacity-50"
+                  >
+                    +
+                  </button>
+                </form>
+              </div>
+
+              {/* Cargos */}
+              <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+                <h3 className="text-sm font-semibold text-gray-800 mb-3">
+                  Cargos <span className="text-gray-400 font-normal">({cargos.length})</span>
+                </h3>
+                <div className="space-y-1 mb-3 max-h-28 overflow-y-auto">
+                  {cargos.length === 0
+                    ? <p className="text-xs text-gray-400 italic">Sin cargos creados</p>
+                    : cargos.map(c => (
+                        <p key={c.id} className="text-xs text-gray-600">• {c.nombre}</p>
+                      ))
+                  }
+                </div>
+                {areas.length === 0 ? (
+                  <p className="text-xs text-orange-600 bg-orange-50 border border-orange-200 rounded-lg px-2 py-1.5">
+                    Crea al menos un área antes de agregar cargos.
+                  </p>
+                ) : (
+                  <form onSubmit={crearCargo} className="space-y-2">
+                    <select
+                      value={nuevoCargo.area_id}
+                      onChange={e => setNuevoCargo({ ...nuevoCargo, area_id: e.target.value })}
+                      required
+                      className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Seleccionar área...</option>
+                      {areas.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
+                    </select>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={nuevoCargo.nombre}
+                        onChange={e => setNuevoCargo({ ...nuevoCargo, nombre: e.target.value })}
+                        placeholder="Nombre del cargo..."
+                        required
+                        className="flex-1 border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <button
+                        type="submit"
+                        disabled={guardandoCargo}
+                        className="bg-blue-700 hover:bg-blue-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition disabled:opacity-50"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+
+            </div>
+          )}
+        </div>
 
         {/* Modal: crear usuario */}
         {mostrarFormulario && (
@@ -333,6 +481,15 @@ export default function Usuarios() {
                       <option key={a.id} value={a.id}>{a.nombre}</option>
                     ))}
                   </select>
+                  {areas.length === 0 && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      No hay áreas creadas.{' '}
+                      <button type="button" onClick={() => { cerrarModal(); setMostrarGestion(true) }}
+                        className="text-blue-600 hover:underline">
+                        Crear áreas
+                      </button>
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-gray-700 mb-1">
@@ -345,6 +502,15 @@ export default function Usuarios() {
                       <option key={c.id} value={c.id}>{c.nombre}</option>
                     ))}
                   </select>
+                  {cargos.length === 0 && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      No hay cargos creados.{' '}
+                      <button type="button" onClick={() => { cerrarModal(); setMostrarGestion(true) }}
+                        className="text-blue-600 hover:underline">
+                        Crear cargos
+                      </button>
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
