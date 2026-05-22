@@ -50,7 +50,7 @@ export default function FloatingSASBOT() {
   }
 
   return (
-    <div className="fixed bottom-6 right-4 sm:right-6 z-50 flex flex-col items-end gap-3">
+    <div className="fixed bottom-6 right-4 sm:right-6 z-50 flex flex-col items-end gap-3 pointer-events-none">
 
       {/* Panel de chat */}
       <div className={`transition-all duration-300 origin-bottom-right ${
@@ -151,14 +151,14 @@ export default function FloatingSASBOT() {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
         aria-label="Abrir SASBOT"
-        className="relative group"
+        className="relative group pointer-events-auto"
       >
         {!abierto && (
           <span className="absolute inset-0 rounded-full bg-blue-400 opacity-30 animate-ping" />
         )}
         <div className={`relative w-16 h-16 rounded-full overflow-hidden shadow-xl border-2 border-white transition-transform duration-200 ${
-          hovered || abierto ? 'scale-110' : abierto ? '' : 'animate-bounce'
-        }`} style={{ animationDuration: '2s' }}>
+          hovered || abierto ? 'scale-110' : ''
+        }`}>
           <img src="/sasbot.jpeg" alt="SASBOT" className="w-full h-full object-cover" />
         </div>
         {/* Badge "x" cuando está abierto */}

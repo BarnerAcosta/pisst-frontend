@@ -51,7 +51,7 @@ export default function Chat() {
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-8rem)] md:h-[calc(100vh-8rem)] h-[calc(100dvh-10rem)]">
+      <div className="max-w-3xl mx-auto flex flex-col h-[calc(100dvh-10rem)] md:h-[calc(100vh-8rem)]">
 
         {/* Encabezado */}
         <div className="mb-3 sm:mb-4">

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { useAuth } from '../context/AuthContext'
 import Layout from '../components/Layout'
 import api from '../services/api'
 
@@ -9,9 +8,12 @@ const coloresRol = {
   empleado: 'bg-gray-100 text-gray-700',
 }
 
+const formCrearVacio = { nombre: '', email: '', role: 'empleado', area_nombre: '', cargo_nombre: '' }
+
 export default function Usuarios() {
-  const { user } = useAuth()
   const [usuarios, setUsuarios] = useState([])
+  const [areas, setAreas] = useState([])
+  const [cargos, setCargos] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
   const [exito, setExito] = useState('')
@@ -19,13 +21,13 @@ export default function Usuarios() {
   const [usuarioEditando, setUsuarioEditando] = useState(null)
   const [guardando, setGuardando] = useState(false)
 
-  // Crear: nombre, email, role
-  const [formCrear, setFormCrear] = useState({ nombre: '', email: '', role: 'empleado' })
+  const [formCrear, setFormCrear] = useState(formCrearVacio)
+  const [formEditar, setFormEditar] = useState({ nombre: '', activo: true, area_id: '', cargo_id: '' })
 
-  // Editar: nombre, activo
-  const [formEditar, setFormEditar] = useState({ nombre: '', activo: true })
-
-  useEffect(() => { cargarUsuarios() }, [])
+  useEffect(() => {
+    cargarUsuarios()
+    cargarAreasCargos()
+  }, [])
 
   async function cargarUsuarios() {
     try {
@@ -39,14 +41,34 @@ export default function Usuarios() {
     }
   }
 
+  async function cargarAreasCargos() {
+    try {
+      const [resAreas, resCargos] = await Promise.all([
+        api.get('/areas/'),
+        api.get('/cargos/'),
+      ])
+      setAreas(resAreas.data)
+      setCargos(resCargos.data)
+    } catch {
+      // Áreas y cargos son opcionales — no bloquear si fallan
+    }
+  }
+
   async function crearUsuario(e) {
     e.preventDefault()
     setGuardando(true)
     setError('')
     try {
-      await api.post('/usuarios/', formCrear)
+      const payload = {
+        nombre: formCrear.nombre,
+        email: formCrear.email,
+        role: formCrear.role,
+        ...(formCrear.area_nombre  && { area_nombre:  formCrear.area_nombre }),
+        ...(formCrear.cargo_nombre && { cargo_nombre: formCrear.cargo_nombre }),
+      }
+      await api.post('/usuarios/', payload)
       setMostrarFormulario(false)
-      setFormCrear({ nombre: '', email: '', role: 'empleado' })
+      setFormCrear(formCrearVacio)
       setExito('Usuario creado. Se envió la contraseña temporal al correo registrado.')
       setTimeout(() => setExito(''), 5000)
       cargarUsuarios()
@@ -62,7 +84,13 @@ export default function Usuarios() {
     setGuardando(true)
     setError('')
     try {
-      await api.patch(`/usuarios/${usuarioEditando.id}`, formEditar)
+      const payload = {
+        nombre: formEditar.nombre,
+        activo: formEditar.activo,
+        area_id:  formEditar.area_id  || null,
+        cargo_id: formEditar.cargo_id || null,
+      }
+      await api.patch(`/usuarios/${usuarioEditando.id}`, payload)
       setUsuarioEditando(null)
       cargarUsuarios()
     } catch (err) {
@@ -74,7 +102,7 @@ export default function Usuarios() {
 
   function abrirEditar(u) {
     setUsuarioEditando(u)
-    setFormEditar({ nombre: u.nombre, activo: u.activo })
+    setFormEditar({ nombre: u.nombre, activo: u.activo, area_id: u.area_id ?? '', cargo_id: u.cargo_id ?? '' })
     setMostrarFormulario(false)
   }
 
@@ -191,7 +219,7 @@ export default function Usuarios() {
         {/* Modal: crear usuario */}
         {mostrarFormulario && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
               <h2 className="text-lg font-bold text-blue-900 mb-1">Nuevo usuario</h2>
               <p className="text-xs text-gray-500 mb-4">
                 Se generará una contraseña temporal y se enviará al correo del usuario.
@@ -218,6 +246,49 @@ export default function Usuarios() {
                     <option value="gerencia">Gerencia</option>
                   </select>
                 </div>
+
+                {/* Área */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Área <span className="text-gray-400">(opcional)</span>
+                  </label>
+                  {areas.length > 0 ? (
+                    <select value={formCrear.area_nombre} onChange={e => setFormCrear({...formCrear, area_nombre: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="">Sin área asignada</option>
+                      {areas.map(a => (
+                        <option key={a.id} value={a.nombre}>{a.nombre}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input type="text" value={formCrear.area_nombre}
+                      onChange={e => setFormCrear({...formCrear, area_nombre: e.target.value})}
+                      placeholder="Nombre del área"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                  )}
+                </div>
+
+                {/* Cargo */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Cargo <span className="text-gray-400">(opcional)</span>
+                  </label>
+                  {cargos.length > 0 ? (
+                    <select value={formCrear.cargo_nombre} onChange={e => setFormCrear({...formCrear, cargo_nombre: e.target.value})}
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                      <option value="">Sin cargo asignado</option>
+                      {cargos.map(c => (
+                        <option key={c.id} value={c.nombre}>{c.nombre}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <input type="text" value={formCrear.cargo_nombre}
+                      onChange={e => setFormCrear({...formCrear, cargo_nombre: e.target.value})}
+                      placeholder="Nombre del cargo"
+                      className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                  )}
+                </div>
+
                 <div className="flex gap-3 pt-2">
                   <button type="button" onClick={cerrarModal}
                     className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
@@ -243,6 +314,30 @@ export default function Usuarios() {
                   <label className="block text-xs font-medium text-gray-700 mb-1">Nombre completo</label>
                   <input type="text" value={formEditar.nombre} onChange={e => setFormEditar({...formEditar, nombre: e.target.value})} required
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Área <span className="text-gray-400">(opcional)</span>
+                  </label>
+                  <select value={formEditar.area_id} onChange={e => setFormEditar({...formEditar, area_id: e.target.value})}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Sin área asignada</option>
+                    {areas.map(a => (
+                      <option key={a.id} value={a.id}>{a.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Cargo <span className="text-gray-400">(opcional)</span>
+                  </label>
+                  <select value={formEditar.cargo_id} onChange={e => setFormEditar({...formEditar, cargo_id: e.target.value})}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="">Sin cargo asignado</option>
+                    {cargos.map(c => (
+                      <option key={c.id} value={c.id}>{c.nombre}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
