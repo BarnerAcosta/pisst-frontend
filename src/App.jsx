@@ -32,9 +32,10 @@ export default function App() {
 
       <Route path="/" element={
         <PrivateRoute>
-          {userRole === 'sst' && <Navigate to="/dashboard" replace />}
-          {userRole === 'gerencia' && <Navigate to="/metricas" replace />}
-          {userRole === 'empleado' && <Navigate to="/chat" replace />}
+          {userRole === 'sst'      ? <Navigate to="/dashboard" replace /> :
+           userRole === 'gerencia' ? <Navigate to="/metricas" replace /> :
+           userRole === 'empleado' ? <Navigate to="/chat" replace /> :
+           <Navigate to="/login" replace />}
         </PrivateRoute>
       }/>
 

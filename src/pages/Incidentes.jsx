@@ -99,7 +99,7 @@ export default function Incidentes() {
         api.get(`/incidentes/${inc.id}`),
         esSST ? api.get('/usuarios/') : Promise.resolve({ data: [] }),
       ])
-      setIncidenteSeleccionado(resDetalle.data)
+      setIncidenteSeleccionado(prev => prev?.id === inc.id ? resDetalle.data : prev)
       setAcciones(resDetalle.data.acciones_correctivas || [])
       setUsuarios(resUsers.data)
     } catch {
@@ -536,22 +536,26 @@ export default function Incidentes() {
                               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                           </div>
                         </div>
-                        {usuarios.length > 0 && (
-                          <div>
-                            <label className="block text-xs font-medium text-gray-700 mb-1">Responsable</label>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Responsable</label>
+                          {usuarios.length > 0 ? (
                             <select value={formAccion.responsable_id} onChange={e => setFormAccion({...formAccion, responsable_id: e.target.value})} required
                               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
                               <option value="">Seleccionar...</option>
                               {usuarios.map(u => <option key={u.id} value={u.id}>{u.nombre}</option>)}
                             </select>
-                          </div>
-                        )}
+                          ) : (
+                            <p className="text-xs text-orange-600 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+                              No se pudieron cargar los usuarios. Cierra y vuelve a abrir el detalle.
+                            </p>
+                          )}
+                        </div>
                         <div className="flex gap-2">
                           <button type="button" onClick={() => setMostrarFormAccion(false)}
                             className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-50 transition">
                             Cancelar
                           </button>
-                          <button type="submit" disabled={guardando}
+                          <button type="submit" disabled={guardando || usuarios.length === 0}
                             className="flex-1 bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg text-sm font-medium transition disabled:opacity-50">
                             Guardar
                           </button>

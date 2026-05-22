@@ -16,6 +16,7 @@ const menuGerencia = [
   { path: '/metricas', label: 'Dashboard' },
 ]
 const menuEmpleado = [
+  { path: '/chat',      label: 'SASBOT' },
   { path: '/incidentes', label: 'Reportar incidente' },
 ]
 
