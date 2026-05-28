@@ -10,6 +10,8 @@ import Riesgos from './pages/Riesgos'
 import Auditorias from './pages/Auditorias'
 import Usuarios from './pages/Usuarios'
 import ResetPassword from './pages/ResetPassword'
+import CambiarPassword from './pages/CambiarPassword'
+import Mantenimiento from './pages/Mantenimiento'
 
 
 function PrivateRoute({ children, roles }) {
@@ -29,6 +31,8 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/cambiar-password" element={<CambiarPassword />} />
+      <Route path="/mantenimiento" element={<Mantenimiento />} />
 
       <Route path="/" element={
         <PrivateRoute>
