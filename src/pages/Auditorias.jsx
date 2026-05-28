@@ -23,11 +23,14 @@ const coloresClasificacion = {
   observacion:              'bg-blue-100 text-blue-700',
 }
 
+const LIMIT = 20
+
 export default function Auditorias() {
   const [auditorias, setAuditorias] = useState([])
   const [cargando, setCargando] = useState(true)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [error, setError] = useState('')
+  const [pagina, setPagina] = useState(1)
 
   // Formulario nueva auditoría
   const [form, setForm] = useState({ objetivos: '', fecha_programada: '' })
@@ -47,12 +50,13 @@ export default function Auditorias() {
   const [formNC, setFormNC] = useState({ descripcion: '', fecha_limite: '', responsable_id: '' })
   const [noConformidades, setNoConformidades] = useState({})
 
-  useEffect(() => { cargarAuditorias() }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { cargarAuditorias() }, [pagina])
 
   async function cargarAuditorias() {
     try {
       setCargando(true)
-      const res = await api.get('/auditorias/')
+      const res = await api.get('/auditorias/', { params: { skip: (pagina - 1) * LIMIT, limit: LIMIT } })
       setAuditorias(res.data)
     } catch {
       setError('Error al cargar las auditorías')
@@ -374,6 +378,26 @@ export default function Auditorias() {
                 </div>
               </form>
             </div>
+          </div>
+        )}
+
+        {(pagina > 1 || auditorias.length === LIMIT) && (
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+            <button
+              onClick={() => setPagina(p => p - 1)}
+              disabled={pagina === 1}
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              ← Anterior
+            </button>
+            <span className="text-xs text-gray-500">Página {pagina}</span>
+            <button
+              onClick={() => setPagina(p => p + 1)}
+              disabled={auditorias.length < LIMIT}
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              Siguiente →
+            </button>
           </div>
         )}
 

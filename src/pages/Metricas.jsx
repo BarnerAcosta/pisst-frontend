@@ -11,6 +11,7 @@ export default function Metricas() {
   const [dashboard, setDashboard] = useState(null)
   const [alertas, setAlertas] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [periodoReporte, setPeriodoReporte] = useState('mensual')
 
   async function cargarDatos() {
     try {
@@ -127,37 +128,42 @@ export default function Metricas() {
         {/* Exportar reportes */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-6">
           <h2 className="text-sm font-medium text-gray-700 mb-3">Exportar reportes</h2>
-          <div className="flex flex-wrap gap-3">
-            {['mensual', 'trimestral', 'anual'].map(periodo => (
-              <div key={periodo} className="flex gap-2">
-                <button
-                  onClick={async () => {
-                    try {
-                      const res = await api.get(`/metricas/reporte-pdf?periodo=${periodo}`, { responseType: 'blob' })
-                      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
-                      const a = document.createElement('a'); a.href = url
-                      a.download = `reporte_sst_${periodo}.pdf`; a.click(); URL.revokeObjectURL(url)
-                    } catch { console.error('Error al descargar PDF') }
-                  }}
-                  className="px-3 py-1.5 text-xs font-medium border border-red-200 text-red-700 hover:bg-red-50 rounded-lg transition capitalize"
-                >
-                  PDF {periodo}
-                </button>
-                <button
-                  onClick={async () => {
-                    try {
-                      const res = await api.get(`/metricas/reporte-excel?periodo=${periodo}`, { responseType: 'blob' })
-                      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }))
-                      const a = document.createElement('a'); a.href = url
-                      a.download = `reporte_sst_${periodo}.xlsx`; a.click(); URL.revokeObjectURL(url)
-                    } catch { console.error('Error al descargar Excel') }
-                  }}
-                  className="px-3 py-1.5 text-xs font-medium border border-green-200 text-green-700 hover:bg-green-50 rounded-lg transition capitalize"
-                >
-                  Excel {periodo}
-                </button>
-              </div>
-            ))}
+          <div className="flex flex-wrap items-center gap-3">
+            <select
+              value={periodoReporte}
+              onChange={e => setPeriodoReporte(e.target.value)}
+              className="border border-gray-300 rounded-lg px-3 py-1.5 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="mensual">Mensual</option>
+              <option value="trimestral">Trimestral</option>
+              <option value="anual">Anual</option>
+            </select>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await api.get(`/metricas/reporte-pdf?periodo=${periodoReporte}`, { responseType: 'blob' })
+                  const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }))
+                  const a = document.createElement('a'); a.href = url
+                  a.download = `reporte_sst_${periodoReporte}.pdf`; a.click(); URL.revokeObjectURL(url)
+                } catch { console.error('Error al descargar PDF') }
+              }}
+              className="px-3 py-1.5 text-xs font-medium border border-red-200 text-red-700 hover:bg-red-50 rounded-lg transition"
+            >
+              Descargar PDF
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  const res = await api.get(`/metricas/reporte-excel?periodo=${periodoReporte}`, { responseType: 'blob' })
+                  const url = URL.createObjectURL(new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }))
+                  const a = document.createElement('a'); a.href = url
+                  a.download = `reporte_sst_${periodoReporte}.xlsx`; a.click(); URL.revokeObjectURL(url)
+                } catch { console.error('Error al descargar Excel') }
+              }}
+              className="px-3 py-1.5 text-xs font-medium border border-green-200 text-green-700 hover:bg-green-50 rounded-lg transition"
+            >
+              Descargar Excel
+            </button>
           </div>
         </div>
 

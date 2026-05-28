@@ -8,6 +8,7 @@ const coloresRol = {
   empleado: 'bg-gray-100 text-gray-700',
 }
 
+const LIMIT = 20
 const formCrearVacio = { nombre: '', email: '', role: 'empleado', area_nombre: '', cargo_nombre: '' }
 
 export default function Usuarios() {
@@ -31,16 +32,16 @@ export default function Usuarios() {
   const [guardandoArea, setGuardandoArea] = useState(false)
   const [nuevoCargo, setNuevoCargo] = useState({ nombre: '', area_id: '' })
   const [guardandoCargo, setGuardandoCargo] = useState(false)
+  const [pagina, setPagina] = useState(1)
 
-  useEffect(() => {
-    cargarUsuarios()
-    cargarAreasCargos()
-  }, [])
+  useEffect(() => { cargarAreasCargos() }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { cargarUsuarios() }, [pagina])
 
   async function cargarUsuarios() {
     try {
       setCargando(true)
-      const res = await api.get('/usuarios/')
+      const res = await api.get('/usuarios/', { params: { skip: (pagina - 1) * LIMIT, limit: LIMIT } })
       setUsuarios(res.data)
     } catch {
       setError('Error al cargar los usuarios')
@@ -536,6 +537,26 @@ export default function Usuarios() {
                 </div>
               </form>
             </div>
+          </div>
+        )}
+
+        {(pagina > 1 || usuarios.length === LIMIT) && (
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+            <button
+              onClick={() => setPagina(p => p - 1)}
+              disabled={pagina === 1}
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              ← Anterior
+            </button>
+            <span className="text-xs text-gray-500">Página {pagina}</span>
+            <button
+              onClick={() => setPagina(p => p + 1)}
+              disabled={usuarios.length < LIMIT}
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              Siguiente →
+            </button>
           </div>
         )}
 

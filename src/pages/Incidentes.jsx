@@ -3,6 +3,7 @@ import Layout from '../components/Layout'
 import api from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
+const LIMIT = 20
 const ESTADOS = ['borrador', 'en_revision', 'abierto', 'en_investigacion', 'cerrado']
 
 const coloresEstado = {
@@ -29,6 +30,7 @@ export default function Incidentes() {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('')
+  const [pagina, setPagina] = useState(1)
 
   // Modal crear
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
@@ -58,7 +60,8 @@ export default function Incidentes() {
   const cargarIncidentes = useCallback(async () => {
     try {
       setCargando(true)
-      const params = filtroEstado ? { estado: filtroEstado } : {}
+      const params = { skip: (pagina - 1) * LIMIT, limit: LIMIT }
+      if (filtroEstado) params.estado = filtroEstado
       const res = await api.get('/incidentes/', { params })
       setIncidentes(res.data)
     } catch {
@@ -66,7 +69,7 @@ export default function Incidentes() {
     } finally {
       setCargando(false)
     }
-  }, [filtroEstado])
+  }, [filtroEstado, pagina])
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -75,6 +78,9 @@ export default function Incidentes() {
 
     return () => window.clearTimeout(timeoutId)
   }, [cargarIncidentes])
+
+  // Volver a página 1 cuando cambia el filtro
+  useEffect(() => { setPagina(1) }, [filtroEstado])
 
   async function abrirDetalle(inc) {
     setIncidenteSeleccionado(inc)
@@ -566,6 +572,26 @@ export default function Incidentes() {
                 )}
               </div>
             </div>
+          </div>
+        )}
+
+        {(pagina > 1 || incidentes.length === LIMIT) && (
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+            <button
+              onClick={() => setPagina(p => p - 1)}
+              disabled={pagina === 1}
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              ← Anterior
+            </button>
+            <span className="text-xs text-gray-500">Página {pagina}</span>
+            <button
+              onClick={() => setPagina(p => p + 1)}
+              disabled={incidentes.length < LIMIT}
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              Siguiente →
+            </button>
           </div>
         )}
 

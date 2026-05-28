@@ -18,6 +18,8 @@ const coloresTipo = {
   epp:            'bg-gray-100 text-gray-700',
 }
 
+const LIMIT = 20
+
 export default function Riesgos() {
   const { user } = useAuth()
   const esSST = user?.role === 'sst'
@@ -26,6 +28,7 @@ export default function Riesgos() {
   const [cargando, setCargando] = useState(true)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [error, setError] = useState('')
+  const [pagina, setPagina] = useState(1)
 
   const [form, setForm] = useState({ descripcion: '', tipo: 'mecanico', actividad: '', trabajadores_expuestos: 1 })
 
@@ -42,13 +45,14 @@ export default function Riesgos() {
   const [mostrarFormControl, setMostrarFormControl] = useState(false)
   const [formControl, setFormControl] = useState({ descripcion: '', tipo: 'administrativo', fecha_limite: '' })
 
-  useEffect(() => { cargarDatos() }, [])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { cargarDatos() }, [pagina])
 
   async function cargarDatos() {
     try {
       setCargando(true)
       const [resPeligros, resMatriz] = await Promise.all([
-        api.get('/riesgos/peligros'),
+        api.get('/riesgos/peligros', { params: { skip: (pagina - 1) * LIMIT, limit: LIMIT } }),
         api.get('/riesgos/matriz'),
       ])
       setPeligros(resPeligros.data)
@@ -465,6 +469,26 @@ export default function Riesgos() {
                 </div>
               </form>
             </div>
+          </div>
+        )}
+
+        {(pagina > 1 || peligros.length === LIMIT) && (
+          <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+            <button
+              onClick={() => setPagina(p => p - 1)}
+              disabled={pagina === 1}
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              ← Anterior
+            </button>
+            <span className="text-xs text-gray-500">Página {pagina}</span>
+            <button
+              onClick={() => setPagina(p => p + 1)}
+              disabled={peligros.length < LIMIT}
+              className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition"
+            >
+              Siguiente →
+            </button>
           </div>
         )}
 

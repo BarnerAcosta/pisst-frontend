@@ -19,8 +19,9 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(sesion.token)
   const [user, setUser]   = useState(sesion.user)
 
-  function login(accessToken, userData) {
+  function login(accessToken, refreshToken, userData) {
     sessionStorage.setItem('pisst_token', accessToken)
+    sessionStorage.setItem('pisst_refresh_token', refreshToken)
     sessionStorage.setItem('pisst_user',  JSON.stringify(userData))
     setToken(accessToken)
     setUser(userData)
@@ -28,6 +29,7 @@ export function AuthProvider({ children }) {
 
   function logout() {
     sessionStorage.removeItem('pisst_token')
+    sessionStorage.removeItem('pisst_refresh_token')
     sessionStorage.removeItem('pisst_user')
     setToken(null)
     setUser(null)
