@@ -12,6 +12,10 @@ const coloresAsistencia = {
 // Helper para convertir ISO a datetime-local sin cambios de zona horaria
 function isoToDatetimeLocal(isoString) {
   if (!isoString) return ''
+  // Si el string no tiene indicador de zona horaria, tratarlo como UTC
+  if (!isoString.includes('Z') && !isoString.includes('+') && !isoString.match(/[+-]\d{2}:\d{2}$/)) {
+    isoString = isoString + 'Z'
+  }
   const date = new Date(isoString)
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
