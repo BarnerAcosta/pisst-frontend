@@ -231,6 +231,8 @@ export default function Capacitaciones() {
       setFormSesion(prev => ({ ...prev, empleado_ids: [] }))
     }
   }
+
+  async function abrirReprogramarSesion(sesion) {
     setSesionReprogramando(sesion)
     setFormReprogramar({
       fecha: isoToDatetimeLocal(sesion.fecha),
