@@ -16,10 +16,17 @@ export default function Capacitaciones() {
   const [capacitaciones, setCapacitaciones] = useState([])
   const [cobertura, setCobertura] = useState(null)
   const [cargando, setCargando] = useState(true)
-  const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [error, setError] = useState('')
+  const [areas, setAreas] = useState([])
 
-  const [form, setForm] = useState({ titulo: '', objetivos: '', duracion_horas: 1 })
+  // Formulario nueva capacitación
+  const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [form, setForm] = useState({ titulo: '', objetivos: '', duracion_horas: 1, area_ids: [] })
+
+  // Edición de capacitación
+  const [capacitacionEditando, setCapacitacionEditando] = useState(null)
+  const [mostrarFormEditar, setMostrarFormEditar] = useState(false)
+  const [formEditar, setFormEditar] = useState({ titulo: '', objetivos: '', duracion_horas: 1, activo: true })
 
   // Capacitación expandida
   const [expandida, setExpandida] = useState(null)
@@ -30,13 +37,18 @@ export default function Capacitaciones() {
   const [mostrarFormSesion, setMostrarFormSesion] = useState(false)
   const [formSesion, setFormSesion] = useState({ fecha: '', lugar: '' })
 
+  // Reprogramación de sesión
+  const [sesionReprogramando, setSesionReprogramando] = useState(null)
+  const [mostrarFormReprogramar, setMostrarFormReprogramar] = useState(false)
+  const [formReprogramar, setFormReprogramar] = useState({ fecha: '', lugar: '' })
+
   // Sesión expandida (asistencia)
   const [sesionExpandida, setSesionExpandida] = useState(null)
   const [asistencia, setAsistencia] = useState([])
   const [usuarios, setUsuarios] = useState([])
   const [cargandoAsistencia, setCargandoAsistencia] = useState(false)
 
-  useEffect(() => { cargarDatos() }, [])
+  useEffect(() => { cargarDatos(); cargarAreas() }, [])
 
   async function cargarDatos() {
     try {
@@ -54,12 +66,26 @@ export default function Capacitaciones() {
     }
   }
 
+  async function cargarAreas() {
+    try {
+      const res = await api.get('/areas/')
+      setAreas(res.data)
+    } catch {
+      // No mostrar error si falla cargar áreas, es opcional
+    }
+  }
+
   async function crearCapacitacion(e) {
     e.preventDefault()
     try {
-      await api.post('/capacitaciones/', form)
+      await api.post('/capacitaciones/', {
+        titulo: form.titulo,
+        objetivos: form.objetivos,
+        duracion_horas: form.duracion_horas,
+        ...(form.area_ids.length > 0 && { area_ids: form.area_ids }),
+      })
       setMostrarFormulario(false)
-      setForm({ titulo: '', objetivos: '', duracion_horas: 1 })
+      setForm({ titulo: '', objetivos: '', duracion_horas: 1, area_ids: [] })
       cargarDatos()
     } catch {
       setError('Error al crear la capacitación')
@@ -137,6 +163,78 @@ export default function Capacitaciones() {
     return asistencia.find(a => a.empleado_id === empleadoId)?.estado || null
   }
 
+  async function editarCapacitacion(cap) {
+    setCapacitacionEditando(cap)
+    setFormEditar({
+      titulo: cap.titulo || '',
+      objetivos: cap.objetivos || '',
+      duracion_horas: cap.duracion_horas || 1,
+      activo: cap.activo ?? true,
+    })
+    setMostrarFormEditar(true)
+  }
+
+  async function guardarEdicionCapacitacion(e) {
+    e.preventDefault()
+    try {
+      const payload = {}
+      if (formEditar.titulo !== capacitacionEditando.titulo) payload.titulo = formEditar.titulo
+      if (formEditar.objetivos !== capacitacionEditando.objetivos) payload.objetivos = formEditar.objetivos
+      if (formEditar.duracion_horas !== capacitacionEditando.duracion_horas) payload.duracion_horas = formEditar.duracion_horas
+      if (formEditar.activo !== capacitacionEditando.activo) payload.activo = formEditar.activo
+
+      await api.patch(`/capacitaciones/${capacitacionEditando.id}`, payload)
+      setMostrarFormEditar(false)
+      setCapacitacionEditando(null)
+      cargarDatos()
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Error al editar la capacitación')
+    }
+  }
+
+  async function cambiarEstadoCapacitacion(cap, activo) {
+    try {
+      await api.patch(`/capacitaciones/${cap.id}`, { activo })
+      cargarDatos()
+    } catch (err) {
+      setError(err.response?.data?.detail || `Error al ${activo ? 'activar' : 'suspender'} la capacitación`)
+    }
+  }
+
+  async function abrirReprogramarSesion(sesion) {
+    setSesionReprogramando(sesion)
+    setFormReprogramar({
+      fecha: sesion.fecha ? new Date(sesion.fecha).toISOString().slice(0, 16) : '',
+      lugar: sesion.lugar || '',
+    })
+    setMostrarFormReprogramar(true)
+  }
+
+  async function guardarReprogramacionSesion(e) {
+    e.preventDefault()
+    try {
+      const payload = {}
+      if (formReprogramar.fecha) payload.fecha = new Date(formReprogramar.fecha).toISOString()
+      if (formReprogramar.lugar) payload.lugar = formReprogramar.lugar
+
+      if (Object.keys(payload).length === 0) {
+        setError('Debe cambiar al menos un campo para reprogramar')
+        return
+      }
+
+      await api.patch(`/capacitaciones/sesiones/${sesionReprogramando.id}`, payload)
+      setMostrarFormReprogramar(false)
+      setSesionReprogramando(null)
+      // Recargar sesiones de la capacitación expandida
+      if (expandida) {
+        const resSesiones = await api.get(`/capacitaciones/${expandida.id}/sesiones`)
+        setSesiones(resSesiones.data)
+      }
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Error al reprogramar la sesión')
+    }
+  }
+
   return (
     <Layout>
       <div className="max-w-5xl mx-auto">
@@ -196,11 +294,31 @@ export default function Capacitaciones() {
                 <div className="p-4 cursor-pointer hover:bg-gray-50 transition" onClick={() => expandirCapacitacion(cap)}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{cap.titulo}</h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <h3 className="font-medium text-gray-900">{cap.titulo}</h3>
+                        {esSST && (
+                          <div className="flex gap-1" onClick={e => e.stopPropagation()}>
+                            <button onClick={() => editarCapacitacion(cap)}
+                              className="text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-0.5 rounded transition"
+                              title="Editar">
+                              ✎
+                            </button>
+                            <button onClick={() => cambiarEstadoCapacitacion(cap, !cap.activo)}
+                              className={`text-xs px-2 py-0.5 rounded transition font-medium ${
+                                cap.activo
+                                  ? 'text-orange-600 hover:text-orange-800 hover:bg-orange-50'
+                                  : 'text-green-600 hover:text-green-800 hover:bg-green-50'
+                              }`}
+                              title={cap.activo ? 'Suspender' : 'Activar'}>
+                              {cap.activo ? '⊗' : '✓'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
                       {cap.objetivos && (
-                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">{cap.objetivos}</p>
+                        <p className="text-sm text-gray-500 mb-1 line-clamp-2">{cap.objetivos}</p>
                       )}
-                      <div className="flex items-center gap-3 mt-2">
+                      <div className="flex items-center gap-3 mb-2 flex-wrap">
                         <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
                           {cap.duracion_horas}h
                         </span>
@@ -208,6 +326,15 @@ export default function Capacitaciones() {
                           {cap.activo ? 'Activa' : 'Inactiva'}
                         </span>
                       </div>
+                      {cap.areas && cap.areas.length > 0 && (
+                        <div className="flex flex-wrap gap-1">
+                          {cap.areas.map(area => (
+                            <span key={area.id} className="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">
+                              {area.nombre}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     <span className="text-gray-400 text-sm">{expandida?.id === cap.id ? '▲' : '▼'}</span>
                   </div>
@@ -273,9 +400,18 @@ export default function Capacitaciones() {
                                 </p>
                                 {sesion.lugar && <p className="text-xs text-gray-500">{sesion.lugar}</p>}
                               </div>
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${sesion.activa ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                                {sesion.activa ? 'Activa' : 'Finalizada'}
-                              </span>
+                              <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                                {esSST && (
+                                  <button onClick={() => abrirReprogramarSesion(sesion)}
+                                    className="text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2 py-0.5 rounded transition"
+                                    title="Reprogramar">
+                                    🔄
+                                  </button>
+                                )}
+                                <span className={`text-xs px-2 py-0.5 rounded-full ${sesion.activa ? 'bg-green-50 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                  {sesion.activa ? 'Activa' : 'Finalizada'}
+                                </span>
+                              </div>
                               <span className="text-gray-400 text-xs">{sesionExpandida?.id === sesion.id ? '▲' : '▼'}</span>
                             </div>
 
@@ -331,7 +467,7 @@ export default function Capacitaciones() {
         {/* Modal nueva capacitación */}
         {mostrarFormulario && (
           <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
               <h2 className="text-lg font-bold text-blue-900 mb-4">Nueva capacitación</h2>
               <form onSubmit={crearCapacitacion} className="space-y-4">
                 <div>
@@ -352,6 +488,29 @@ export default function Capacitaciones() {
                     min={1} required
                     className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                 </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Áreas dirigidas (opcional)</label>
+                  <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-300 rounded-lg p-2">
+                    {areas.length === 0 ? (
+                      <p className="text-xs text-gray-400">No hay áreas disponibles</p>
+                    ) : (
+                      areas.map(area => (
+                        <label key={area.id} className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+                          <input type="checkbox" checked={form.area_ids.includes(area.id)}
+                            onChange={e => {
+                              if (e.target.checked) {
+                                setForm({...form, area_ids: [...form.area_ids, area.id]})
+                              } else {
+                                setForm({...form, area_ids: form.area_ids.filter(id => id !== area.id)})
+                              }
+                            }}
+                            className="rounded"/>
+                          {area.nombre}
+                        </label>
+                      ))
+                    )}
+                  </div>
+                </div>
                 <div className="flex gap-3 pt-2">
                   <button type="button" onClick={() => setMostrarFormulario(false)}
                     className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
@@ -360,6 +519,85 @@ export default function Capacitaciones() {
                   <button type="submit"
                     className="flex-1 bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg text-sm font-medium transition">
                     Guardar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal editar capacitación */}
+        {mostrarFormEditar && capacitacionEditando && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
+              <h2 className="text-lg font-bold text-blue-900 mb-4">Editar capacitación</h2>
+              <form onSubmit={guardarEdicionCapacitacion} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Título</label>
+                  <input type="text" value={formEditar.titulo} onChange={e => setFormEditar({...formEditar, titulo: e.target.value})}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Objetivos</label>
+                  <textarea value={formEditar.objetivos} onChange={e => setFormEditar({...formEditar, objetivos: e.target.value})}
+                    rows={3}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"/>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Duración (horas)</label>
+                  <input type="number" value={formEditar.duracion_horas} onChange={e => setFormEditar({...formEditar, duracion_horas: parseInt(e.target.value)})}
+                    min={1}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                </div>
+                <div>
+                  <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                    <input type="checkbox" checked={formEditar.activo} onChange={e => setFormEditar({...formEditar, activo: e.target.checked})}
+                      className="rounded"/>
+                    Capacitación activa
+                  </label>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setMostrarFormEditar(false)}
+                    className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
+                    Cancelar
+                  </button>
+                  <button type="submit"
+                    className="flex-1 bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg text-sm font-medium transition">
+                    Guardar cambios
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Modal reprogramar sesión */}
+        {mostrarFormReprogramar && sesionReprogramando && (
+          <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 px-4">
+            <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg p-6">
+              <h2 className="text-lg font-bold text-blue-900 mb-4">Reprogramar sesión</h2>
+              <form onSubmit={guardarReprogramacionSesion} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Fecha (opcional)</label>
+                  <input type="datetime-local" value={formReprogramar.fecha} onChange={e => setFormReprogramar({...formReprogramar, fecha: e.target.value})}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                  <p className="text-xs text-gray-500 mt-1">Dejar vacío para no cambiar la fecha actual</p>
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">Lugar (opcional)</label>
+                  <input type="text" value={formReprogramar.lugar} onChange={e => setFormReprogramar({...formReprogramar, lugar: e.target.value})}
+                    placeholder="Sala de capacitaciones..."
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
+                  <p className="text-xs text-gray-500 mt-1">Dejar vacío para no cambiar el lugar actual</p>
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <button type="button" onClick={() => setMostrarFormReprogramar(false)}
+                    className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition">
+                    Cancelar
+                  </button>
+                  <button type="submit"
+                    className="flex-1 bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg text-sm font-medium transition">
+                    Reprogramar
                   </button>
                 </div>
               </form>
