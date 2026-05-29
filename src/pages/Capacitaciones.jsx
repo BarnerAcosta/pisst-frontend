@@ -10,6 +10,14 @@ const coloresAsistencia = {
 }
 
 // Helper para convertir ISO a datetime-local sin cambios de zona horaria
+function parseFechaAPI(isoString) {
+  if (!isoString) return new Date()
+  const s = (!isoString.includes('Z') && !isoString.includes('+') && !isoString.match(/[+-]\d{2}:\d{2}$/))
+    ? isoString + 'Z'
+    : isoString
+  return new Date(s)
+}
+
 function isoToDatetimeLocal(isoString) {
   if (!isoString) return ''
   // Si el string no tiene indicador de zona horaria, tratarlo como UTC
@@ -190,6 +198,15 @@ export default function Capacitaciones() {
 
   function estadoAsistencia(empleadoId) {
     return asistencia.find(a => a.empleado_id === empleadoId)?.estado || null
+  }
+
+  async function cambiarEstadoCapacitacion(cap, nuevoEstado) {
+    try {
+      await api.patch(`/capacitaciones/${cap.id}`, { activo: nuevoEstado })
+      cargarDatos()
+    } catch (err) {
+      setError(err.response?.data?.detail || `Error al ${nuevoEstado ? 'activar' : 'suspender'} la capacitación`)
+    }
   }
 
   async function editarCapacitacion(cap) {
@@ -483,7 +500,7 @@ export default function Capacitaciones() {
                               onClick={() => expandirSesion(sesion)}>
                               <div className="flex-1">
                                 <p className="text-sm font-medium text-gray-800">
-                                  {new Date(sesion.fecha).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' })}
+                                  {parseFechaAPI(sesion.fecha).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' })}
                                 </p>
                                 {sesion.lugar && <p className="text-xs text-gray-500">{sesion.lugar}</p>}
                               </div>
