@@ -9,6 +9,28 @@ const coloresAsistencia = {
   justificado: 'bg-yellow-100 text-yellow-700',
 }
 
+// Helper para convertir ISO a datetime-local sin cambios de zona horaria
+function isoToDatetimeLocal(isoString) {
+  if (!isoString) return ''
+  const date = new Date(isoString)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+// Helper para convertir datetime-local a ISO correctamente
+function datetimeLocalToIso(datetimeLocalString) {
+  if (!datetimeLocalString) return null
+  const [date, time] = datetimeLocalString.split('T')
+  const [year, month, day] = date.split('-')
+  const [hours, minutes] = time.split(':')
+  const dateObj = new Date(year, parseInt(month) - 1, parseInt(day), parseInt(hours), parseInt(minutes), 0)
+  return dateObj.toISOString()
+}
+
 export default function Capacitaciones() {
   const { user } = useAuth()
   const esSST = user?.role === 'sst'
@@ -35,7 +57,8 @@ export default function Capacitaciones() {
 
   // Formulario sesión
   const [mostrarFormSesion, setMostrarFormSesion] = useState(false)
-  const [formSesion, setFormSesion] = useState({ fecha: '', lugar: '' })
+  const [formSesion, setFormSesion] = useState({ fecha: '', lugar: '', area_ids: [], empleado_ids: [] })
+  const [empleadosPorArea, setEmpleadosPorArea] = useState([])
 
   // Reprogramación de sesión
   const [sesionReprogramando, setSesionReprogramando] = useState(null)
@@ -116,13 +139,15 @@ export default function Capacitaciones() {
     e.preventDefault()
     try {
       const res = await api.post('/capacitaciones/sesiones', {
-        ...formSesion,
-        fecha: new Date(formSesion.fecha).toISOString(),
+        fecha: datetimeLocalToIso(formSesion.fecha),
+        lugar: formSesion.lugar,
         capacitacion_id: expandida.id,
+        ...(formSesion.empleado_ids.length > 0 && { empleado_ids: formSesion.empleado_ids }),
       })
       setSesiones(prev => [...prev, res.data])
       setMostrarFormSesion(false)
-      setFormSesion({ fecha: '', lugar: '' })
+      setFormSesion({ fecha: '', lugar: '', area_ids: [], empleado_ids: [] })
+      setEmpleadosPorArea([])
     } catch (err) {
       setError(err.response?.data?.detail || 'Error al crear sesión')
     }
@@ -192,19 +217,23 @@ export default function Capacitaciones() {
     }
   }
 
-  async function cambiarEstadoCapacitacion(cap, activo) {
-    try {
-      await api.patch(`/capacitaciones/${cap.id}`, { activo })
-      cargarDatos()
-    } catch (err) {
-      setError(err.response?.data?.detail || `Error al ${activo ? 'activar' : 'suspender'} la capacitación`)
+  async function cambiarAreasEnSesion(areaIds) {
+    setFormSesion(prev => ({ ...prev, area_ids: areaIds }))
+    if (areaIds.length > 0) {
+      // Filtrar usuarios que pertenecen a las áreas seleccionadas
+      const empleadosFiltered = usuarios.filter(u =>
+        areaIds.includes(u.area_id) || (u.areas && u.areas.some(a => areaIds.includes(a.id)))
+      )
+      setEmpleadosPorArea(empleadosFiltered)
+      setFormSesion(prev => ({ ...prev, empleado_ids: [] })) // Resetear selección de empleados
+    } else {
+      setEmpleadosPorArea([])
+      setFormSesion(prev => ({ ...prev, empleado_ids: [] }))
     }
   }
-
-  async function abrirReprogramarSesion(sesion) {
     setSesionReprogramando(sesion)
     setFormReprogramar({
-      fecha: sesion.fecha ? new Date(sesion.fecha).toISOString().slice(0, 16) : '',
+      fecha: isoToDatetimeLocal(sesion.fecha),
       lugar: sesion.lugar || '',
     })
     setMostrarFormReprogramar(true)
@@ -214,8 +243,12 @@ export default function Capacitaciones() {
     e.preventDefault()
     try {
       const payload = {}
-      if (formReprogramar.fecha) payload.fecha = new Date(formReprogramar.fecha).toISOString()
-      if (formReprogramar.lugar) payload.lugar = formReprogramar.lugar
+      if (formReprogramar.fecha && formReprogramar.fecha !== isoToDatetimeLocal(sesionReprogramando.fecha)) {
+        payload.fecha = datetimeLocalToIso(formReprogramar.fecha)
+      }
+      if (formReprogramar.lugar && formReprogramar.lugar !== sesionReprogramando.lugar) {
+        payload.lugar = formReprogramar.lugar
+      }
 
       if (Object.keys(payload).length === 0) {
         setError('Debe cambiar al menos un campo para reprogramar')
@@ -369,14 +402,62 @@ export default function Capacitaciones() {
                               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"/>
                           </div>
                         </div>
+                        <div>
+                          <label className="block text-xs font-medium text-gray-700 mb-1">Áreas (opcional)</label>
+                          <div className="space-y-1 max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2">
+                            {areas.length === 0 ? (
+                              <p className="text-xs text-gray-400">No hay áreas disponibles</p>
+                            ) : (
+                              areas.map(area => (
+                                <label key={area.id} className="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
+                                  <input type="checkbox" checked={formSesion.area_ids.includes(area.id)}
+                                    onChange={e => {
+                                      const newAreas = e.target.checked
+                                        ? [...formSesion.area_ids, area.id]
+                                        : formSesion.area_ids.filter(id => id !== area.id)
+                                      cambiarAreasEnSesion(newAreas)
+                                    }}
+                                    className="rounded"/>
+                                  {area.nombre}
+                                </label>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                        {empleadosPorArea.length > 0 && (
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Empleados de las áreas seleccionadas</label>
+                            <div className="space-y-1 max-h-32 overflow-y-auto border border-gray-300 rounded-lg p-2 bg-gray-50">
+                              {empleadosPorArea.map(emp => (
+                                <label key={emp.id} className="flex items-center gap-2 cursor-pointer text-xs text-gray-700">
+                                  <input type="checkbox" checked={formSesion.empleado_ids.includes(emp.id)}
+                                    onChange={e => {
+                                      if (e.target.checked) {
+                                        setFormSesion({...formSesion, empleado_ids: [...formSesion.empleado_ids, emp.id]})
+                                      } else {
+                                        setFormSesion({...formSesion, empleado_ids: formSesion.empleado_ids.filter(id => id !== emp.id)})
+                                      }
+                                    }}
+                                    className="rounded"/>
+                                  {emp.nombre} ({emp.role})
+                                </label>
+                              ))}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">{formSesion.empleado_ids.length} empleado{formSesion.empleado_ids.length !== 1 ? 's' : ''} seleccionado{formSesion.empleado_ids.length !== 1 ? 's' : ''}</p>
+                          </div>
+                        )}
                         <div className="flex gap-2">
-                          <button type="button" onClick={() => setMostrarFormSesion(false)}
+                          <button type="button" onClick={() => {
+                            setMostrarFormSesion(false)
+                            setFormSesion({ fecha: '', lugar: '', area_ids: [], empleado_ids: [] })
+                            setEmpleadosPorArea([])
+                          }}
                             className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-50">
                             Cancelar
                           </button>
                           <button type="submit"
                             className="flex-1 bg-blue-700 hover:bg-blue-800 text-white py-2 rounded-lg text-sm font-medium">
-                            Guardar
+                            Guardar sesión
                           </button>
                         </div>
                       </form>
