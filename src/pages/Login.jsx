@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import ReCAPTCHA from 'react-google-recaptcha'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
@@ -25,6 +26,8 @@ export default function Login() {
   const [password, setPassword]       = useState('')
   const [verPassword, setVerPassword] = useState(false)
   const [loading, setLoading]         = useState(false)
+  const [recaptchaToken, setRecaptchaToken] = useState(null)
+  const recaptchaRef = useRef(null)
 
   const [modalRecuperar, setModalRecuperar]       = useState(false)
   const [emailRecuperar, setEmailRecuperar]       = useState('')
@@ -50,12 +53,16 @@ export default function Login() {
     e.preventDefault()
     setError('')
     setErrorTipo('')
+    if (!recaptchaToken) {
+      setError('Por favor completa el reCAPTCHA.')
+      return
+    }
     setLoading(true)
     try {
       const response = await api.post('/auth/login', {
         email,
         password,
-        recaptcha_token: 'test',
+        recaptcha_token: recaptchaToken,
       })
       const { access_token, refresh_token, role, nombre } = response.data
       const normalizedRole = role?.toString?.().toLowerCase?.()
@@ -71,6 +78,8 @@ export default function Login() {
       else if (detalle.includes('Sesión expirada') || detalle.includes('dispositivo')) setErrorTipo('sesion')
       else setErrorTipo('')
       setError(detalle)
+      recaptchaRef.current?.reset()
+      setRecaptchaToken(null)
     } finally {
       setLoading(false)
     }
@@ -150,6 +159,16 @@ export default function Login() {
         </div>
       </div>
 
+      <div className="flex justify-center">
+        <ReCAPTCHA
+          ref={recaptchaRef}
+          sitekey={import.meta.env.VITE_RECAPTCHA_SITE_KEY}
+          onChange={token => setRecaptchaToken(token)}
+          onExpired={() => setRecaptchaToken(null)}
+          hl="es"
+        />
+      </div>
+
       {error && (
         <div className={`border rounded-xl px-4 py-3 text-sm flex gap-2 items-start ${estiloError[errorTipo]}`}>
           <span className="mt-0.5 shrink-0">{iconoError[errorTipo]}</span>
@@ -159,7 +178,7 @@ export default function Login() {
 
       <button
         type="submit"
-        disabled={loading || errorTipo === 'bloqueo'}
+        disabled={loading || errorTipo === 'bloqueo' || !recaptchaToken}
         className="w-full bg-blue-700 hover:bg-blue-800 active:bg-blue-900 text-white font-semibold py-3 rounded-xl transition disabled:opacity-50 text-sm shadow-sm"
       >
         {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
